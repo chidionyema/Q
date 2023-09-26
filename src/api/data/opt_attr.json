@@ -1,0 +1,102 @@
+{
+    "Random Search": {
+        "id": 1,
+        "code": "RandomSearchOptimizer",
+        "name": "Random Search",
+        "searchMethod": "random",
+        "parallelizable": true,
+        "computationalIntensity": "medium",
+        "suitableFor": ["all"],
+        "override": null
+    },
+    "Bayesian Optimization": {
+        "id": 2,
+        "code": "BayesianOptimizer",
+        "name": "Bayesian Optimization",
+        "searchMethod": "probabilistic",
+        "parallelizable": true,
+        "computationalIntensity": "medium",
+        "suitableFor": ["all"],
+        "override": null
+    },
+    "Particle Swarm Optimization": {
+        "id": 3,
+        "code": "PSOOptimizer",
+        "name": "Particle Swarm Optimization",
+        "searchMethod": "swarm",
+        "parallelizable": false,
+        "computationalIntensity": "medium",
+        "suitableFor": ["all"],
+        "override": null
+    },
+    "Simulated Annealing": {
+        "id": 4,
+        "code": "SimulatedAnnealingOptimizer",
+        "name": "Simulated Annealing",
+        "searchMethod": "probabilistic",
+        "parallelizable": false,
+        "computationalIntensity": "low",
+        "suitableFor": ["all"],
+        "override": null
+    },
+    "Tree-structured Parzen Estimator": {
+        "id": 5,
+        "code": "TPEOptimizer",
+        "name": "Tree-structured Parzen Estimator",
+        "searchMethod": "probabilistic",
+        "parallelizable": false,
+        "computationalIntensity": "medium",
+        "suitableFor": ["all"],
+        "override": null
+    },
+    "Optuna CMA-ES Optimization": {
+        "id": 6,
+        "code": "OptunaCMAESOptimizer",
+        "name": "Optuna CMA-ES Optimization",
+        "searchMethod": "evolutionary",
+        "parallelizable": false,
+        "computationalIntensity": "medium",
+        "suitableFor": ["all"],
+        "override": null
+    },
+    "Differential Evolution": {
+        "id": 7,
+        "code": "DEAPGAOptimizer",
+        "name": "Differential Evolution (DEAP GA Optimization)",
+        "searchMethod": "evolutionary",
+        "parallelizable": false,
+        "computationalIntensity": "medium",
+        "suitableFor": ["all"],
+        "override": null
+    },
+    "Grid Search": {
+        "id": 8,
+        "code": "GridSearchOptimizer",
+        "name": "Grid Search",
+        "searchMethod": "exhaustive",
+        "parallelizable": true,
+        "computationalIntensity": "high",
+        "suitableFor": ["all"],
+        "override": null
+    },
+    "Nelder-Mead Optimization": {
+        "id": 9,
+        "code": "NelderMeadOptimizer",
+        "name": "Nelder-Mead Optimization",
+        "searchMethod": "simplex",
+        "parallelizable": false,
+        "computationalIntensity": "low",
+        "suitableFor": ["all"],
+        "override": null
+    },
+    "Sequential Model-Based Optimization": {
+        "id": 10,
+        "code": "SMOptimization",
+        "name": "Sequential Model-Based Optimization",
+        "searchMethod": "model-based",
+        "parallelizable": false,
+        "computationalIntensity": "unknown",
+        "suitableFor": ["all"],
+        "override": null
+    }
+}

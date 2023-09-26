@@ -116,7 +116,6 @@ class FeatureEngineer:
         X = data.drop(columns=drop_columns).values
         y = data[label_columns].values
         return X, y
-
 def sequential_split(X, y, train_size=0.7, val_size=0.2):
     train_end = int(train_size * len(X))
     val_end = int((train_size + val_size) * len(X))
@@ -172,19 +171,13 @@ class Pipeline:
 
         aggregated_X = np.array(aggregated_X)
         aggregated_y = np.array(aggregated_y)
-
         X_train, X_val, X_test, y_train, y_val, y_test = sequential_split(aggregated_X, aggregated_y)
 
        
 
-        self.models = [builder.build(X_train, y_train) for builder in self.model_builders]
+        self.models = [builder.build(aggregated_X, aggregated_y) for builder in self.model_builders]
         self.ensemble = Ensemble(self.models)
-        self.ensemble.train(X_train, y_train)
-        print("y_val shape:", y_val.shape)
-        print("val_predictions shape:", np.shape(val_predictions))
-
-        # Get predictions on the validation set
-        
+        self.ensemble.train(aggregated_X, aggregated_y)
 
     def begin_predict(self, new_data):
         return self.ensemble.predict(new_data)

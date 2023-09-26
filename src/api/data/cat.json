@@ -1,0 +1,21 @@
+
+{
+    "categories": [
+      "Deep Learning",
+      "Machine Learning Techniques",
+      "Natural Language Processing",
+      "Time Series Forecasting",
+      "Clustering"
+    ]
+  }
+
+  {
+    "higherOrderCategories": {
+      "Deep Learning": "Artificial Intelligence",
+      "Machine Learning Techniques": "Artificial Intelligence",
+      "Natural Language Processing": "Artificial Intelligence",
+      "Time Series Forecasting": "Artificial Intelligence",
+      "Clustering": "Machine Learning"
+    }
+  }
+  

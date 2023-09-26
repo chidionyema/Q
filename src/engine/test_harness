@@ -1,0 +1,115 @@
+import itertools
+import numpy as np
+from sklearn.metrics import mean_squared_error
+
+# Define hyperparameter spaces for optimizers
+optimizer_hyperparameters = {
+    "RandomSearchOptimizer": {
+        "param_distributions": {
+            "param1": [0.1, 0.2, 0.3],
+            "param2": [10, 20, 30]
+        },
+        "n_iter": [50, 100, 200]
+    },
+    "BayesianOptimizer": {
+        "param_space": {
+            "param1": (0.1, 1.0),
+            "param2": (0.01, 0.1)
+        },
+        "n_iter": [50, 100, 200]
+    },
+    "PSOOptimizer": {
+        # PSO typically does not use predefined parameter spaces, but you can define them if needed
+        "param_space": {
+            "param1": (0.1, 1.0),
+            "param2": (0.01, 0.1)
+        }
+    },
+    "SimulatedAnnealingOptimizer": {
+        # Simulated annealing typically does not use predefined parameter spaces, but you can define them if needed
+        "param_space": {
+            "param1": (0.1, 1.0),
+            "param2": (0.01, 0.1)
+        }
+    },
+    "TPEOptimizer": {
+        # TPE typically does not use predefined parameter spaces, but you can define them if needed
+        "param_space": {
+            "param1": (0.1, 1.0),
+            "param2": (0.01, 0.1)
+        }
+    },
+    "OptunaCMAESOptimizer": {
+        # Optuna CMA-ES optimizer typically does not use predefined parameter spaces, but you can define them if needed
+        "param_space": {
+            "param1": (0.1, 1.0),
+            "param2": (0.01, 0.1)
+        }
+    },
+    "DEAPGAOptimizer": {
+        # DEAP GA optimizer typically does not use predefined parameter spaces, but you can define them if needed
+        "param_space": {
+            "param1": (0.1, 1.0),
+            "param2": (0.01, 0.1)
+        }
+    },
+    "GridSearchOptimizer": {
+        "param_grid": {
+            "param1": [0.1, 0.2, 0.3],
+            "param2": [10, 20, 30]
+        }
+    },
+    "NelderMeadOptimizer": {
+        # Nelder-Mead optimizer typically does not use predefined parameter spaces, but you can define them if needed
+        "param_space": {
+            "param1": (0.1, 1.0),
+            "param2": (0.01, 0.1)
+        }
+    },
+    # Add hyperparameter spaces for other optimizers
+}
+
+
+# Get all subclasses of BaseModel (assuming your base model class is BaseModel)
+from your_module import BaseModel  # Replace 'your_module' with the actual module containing your models
+import inspect
+
+model_classes = [cls for name, cls in inspect.getmembers(BaseModel) if inspect.isclass(cls) and issubclass(cls, BaseModel)]
+
+
+# Generate all possible combinations of models, ensemble strategies, and optimizers
+all_model_combinations = list(itertools.product(model_hyperparameters.keys(), model_classes))
+all_optimizer_combinations = list(itertools.product(optimizer_hyperparameters.keys()))
+
+# Iterate through all combinations and run the experiments
+for model_name, model_class in all_model_combinations:
+    model_params = model_hyperparameters.get(model_name, {})
+    
+    if model_class is None:
+        print(f"Model {model_name} not found.")
+        continue
+
+    model_instance = model_class(**model_params)
+
+    for optimizer_name in all_optimizer_combinations:
+        optimizer_params = optimizer_hyperparameters.get(optimizer_name, {})
+        optimizer_class = globals().get(optimizer_name)
+
+        if optimizer_class is None:
+            print(f"Optimizer {optimizer_name} not found.")
+            continue
+
+        optimizer_instance = optimizer_class(**optimizer_params)
+
+        # Create an instance of the ensemble strategy class (you need to define how to get it)
+        ensemble_strategy_instance = get_ensemble_strategy()
+
+        # Run training and optimization (you need to implement this part)
+        trained_model = train_model_with_optimizer(model_instance, X_train, y_train, ensemble_strategy_instance, optimizer_instance)
+        
+        # Make predictions and evaluate the model
+        y_pred = trained_model.predict(X_test)
+        mse = mean_squared_error(y_test, y_pred)
+        
+        # Print or log results for this combination
+        print(f"Model: {model_name}, Ensemble: {ensemble_strategy_instance.__class__.__name__}, Optimizer: {optimizer_name}, MSE: {mse}")
