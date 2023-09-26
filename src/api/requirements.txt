@@ -1,6 +1,6 @@
 attrs==22.1.0
 ConfigParser==6.0.0
-cryptography==39.0.1
+cryptography==41.0.4
 Cython==3.0.2
 dl==0.1.0
 docutils==0.18.1
