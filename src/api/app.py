@@ -134,18 +134,30 @@ def register():
     data = request.json
     email = data.get('email')
     password = data.get('password')
-   
+
+    # Print statements for debugging
+    print("Received POST request to /register")
+    print(f"Email: {email}")
+    print(f"Password: {password}")
+
     if not validate_email(email):
+        print("Invalid email format!")
         return jsonify({"message": "Invalid email format!"}), 400
     if len(password) < 8:
+        print("Password is too short!")
         return jsonify({"message": "Password should be at least 8 characters!"}), 400
 
     user = retrieve_or_create_user(email, "", "")
 
     token = generate_jwt_token_for_user(user)
 
+    # Print statements for debugging
+    print("User registered successfully")
+    print(f"Generated JWT Token: {token}")
+
     # Return both the token and the email
     return jsonify({"token": token, "email": email})
+
 
 
 @app.route('/login', methods=['POST'])
