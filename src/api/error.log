@@ -1,0 +1,430 @@
+[2023-09-29 04:48:35 +0100] [16400] [DEBUG] Current configuration:
+  config: ./gunicorn.conf.py
+  wsgi_app: None
+  bind: ['127.0.0.1:8000']
+  backlog: 2048
+  workers: 4
+  worker_class: sync
+  threads: 1
+  worker_connections: 1000
+  max_requests: 0
+  max_requests_jitter: 0
+  timeout: 30
+  graceful_timeout: 30
+  keepalive: 2
+  limit_request_line: 4094
+  limit_request_fields: 100
+  limit_request_field_size: 8190
+  reload: False
+  reload_engine: auto
+  reload_extra_files: []
+  spew: False
+  check_config: False
+  print_config: False
+  preload_app: False
+  sendfile: None
+  reuse_port: False
+  chdir: /Users/chidionyema/documents/code/modeltrainer/src/api
+  daemon: False
+  raw_env: []
+  pidfile: None
+  worker_tmp_dir: None
+  user: 501
+  group: 20
+  umask: 0
+  initgroups: False
+  tmp_upload_dir: None
+  secure_scheme_headers: {'X-FORWARDED-PROTOCOL': 'ssl', 'X-FORWARDED-PROTO': 'https', 'X-FORWARDED-SSL': 'on'}
+  forwarded_allow_ips: ['127.0.0.1']
+  accesslog: access.log
+  disable_redirect_access_to_syslog: False
+  access_log_format: %(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
+  errorlog: error.log
+  loglevel: debug
+  capture_output: False
+  logger_class: gunicorn.glogging.Logger
+  logconfig: None
+  logconfig_dict: {}
+  logconfig_json: None
+  syslog_addr: unix:///var/run/syslog
+  syslog: False
+  syslog_prefix: None
+  syslog_facility: user
+  enable_stdio_inheritance: False
+  statsd_host: None
+  dogstatsd_tags: 
+  statsd_prefix: 
+  proc_name: None
+  default_proc_name: your_app:app
+  pythonpath: None
+  paste: None
+  on_starting: <function OnStarting.on_starting at 0x7fd71cee2dd0>
+  on_reload: <function OnReload.on_reload at 0x7fd71cee2ef0>
+  when_ready: <function WhenReady.when_ready at 0x7fd71cee3010>
+  pre_fork: <function Prefork.pre_fork at 0x7fd71cee3130>
+  post_fork: <function Postfork.post_fork at 0x7fd71cee3250>
+  post_worker_init: <function PostWorkerInit.post_worker_init at 0x7fd71cee3370>
+  worker_int: <function WorkerInt.worker_int at 0x7fd71cee3490>
+  worker_abort: <function WorkerAbort.worker_abort at 0x7fd71cee35b0>
+  pre_exec: <function PreExec.pre_exec at 0x7fd71cee36d0>
+  pre_request: <function PreRequest.pre_request at 0x7fd71cee37f0>
+  post_request: <function PostRequest.post_request at 0x7fd71cee3880>
+  child_exit: <function ChildExit.child_exit at 0x7fd71cee39a0>
+  worker_exit: <function WorkerExit.worker_exit at 0x7fd71cee3ac0>
+  nworkers_changed: <function NumWorkersChanged.nworkers_changed at 0x7fd71cee3be0>
+  on_exit: <function OnExit.on_exit at 0x7fd71cee3d00>
+  ssl_context: <function NewSSLContext.ssl_context at 0x7fd71cee3e20>
+  proxy_protocol: False
+  proxy_allow_ips: ['127.0.0.1']
+  keyfile: None
+  certfile: None
+  ssl_version: 2
+  cert_reqs: 0
+  ca_certs: None
+  suppress_ragged_eofs: True
+  do_handshake_on_connect: False
+  ciphers: None
+  raw_paste_global_conf: []
+  strip_header_spaces: False
+[2023-09-29 04:48:35 +0100] [16400] [INFO] Starting gunicorn 21.2.0
+[2023-09-29 04:48:35 +0100] [16400] [DEBUG] Arbiter booted
+[2023-09-29 04:48:35 +0100] [16400] [INFO] Listening at: http://127.0.0.1:8000 (16400)
+[2023-09-29 04:48:35 +0100] [16400] [INFO] Using worker: sync
+[2023-09-29 04:48:35 +0100] [16401] [INFO] Booting worker with pid: 16401
+[2023-09-29 04:48:35 +0100] [16401] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/arbiter.py", line 609, in spawn_worker
+    worker.init_process()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 134, in init_process
+    self.load_wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/base.py", line 67, in wsgi
+    self.callable = self.load()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
+    return self.load_wsgiapp()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/util.py", line 371, in import_app
+    mod = importlib.import_module(module)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1004, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'your_app'
+[2023-09-29 04:48:35 +0100] [16401] [INFO] Worker exiting (pid: 16401)
+[2023-09-29 04:48:35 +0100] [16400] [ERROR] Worker (pid:16401) exited with code 3
+[2023-09-29 04:48:35 +0100] [16400] [ERROR] Shutting down: Master
+[2023-09-29 04:48:35 +0100] [16400] [ERROR] Reason: Worker failed to boot.
+[2023-09-29 11:48:32 +0100] [20553] [DEBUG] Current configuration:
+  config: ./gunicorn.conf.py
+  wsgi_app: None
+  bind: ['127.0.0.1:8000']
+  backlog: 2048
+  workers: 4
+  worker_class: sync
+  threads: 1
+  worker_connections: 1000
+  max_requests: 0
+  max_requests_jitter: 0
+  timeout: 30
+  graceful_timeout: 30
+  keepalive: 2
+  limit_request_line: 4094
+  limit_request_fields: 100
+  limit_request_field_size: 8190
+  reload: False
+  reload_engine: auto
+  reload_extra_files: []
+  spew: False
+  check_config: False
+  print_config: False
+  preload_app: False
+  sendfile: None
+  reuse_port: False
+  chdir: /Users/chidionyema/documents/code/modeltrainer/src/api
+  daemon: False
+  raw_env: []
+  pidfile: None
+  worker_tmp_dir: None
+  user: 501
+  group: 20
+  umask: 0
+  initgroups: False
+  tmp_upload_dir: None
+  secure_scheme_headers: {'X-FORWARDED-PROTOCOL': 'ssl', 'X-FORWARDED-PROTO': 'https', 'X-FORWARDED-SSL': 'on'}
+  forwarded_allow_ips: ['127.0.0.1']
+  accesslog: access.log
+  disable_redirect_access_to_syslog: False
+  access_log_format: %(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
+  errorlog: error.log
+  loglevel: debug
+  capture_output: False
+  logger_class: gunicorn.glogging.Logger
+  logconfig: None
+  logconfig_dict: {}
+  logconfig_json: None
+  syslog_addr: unix:///var/run/syslog
+  syslog: False
+  syslog_prefix: None
+  syslog_facility: user
+  enable_stdio_inheritance: False
+  statsd_host: None
+  dogstatsd_tags: 
+  statsd_prefix: 
+  proc_name: None
+  default_proc_name: your_app:app
+  pythonpath: None
+  paste: None
+  on_starting: <function OnStarting.on_starting at 0x7fb7b58e2dd0>
+  on_reload: <function OnReload.on_reload at 0x7fb7b58e2ef0>
+  when_ready: <function WhenReady.when_ready at 0x7fb7b58e3010>
+  pre_fork: <function Prefork.pre_fork at 0x7fb7b58e3130>
+  post_fork: <function Postfork.post_fork at 0x7fb7b58e3250>
+  post_worker_init: <function PostWorkerInit.post_worker_init at 0x7fb7b58e3370>
+  worker_int: <function WorkerInt.worker_int at 0x7fb7b58e3490>
+  worker_abort: <function WorkerAbort.worker_abort at 0x7fb7b58e35b0>
+  pre_exec: <function PreExec.pre_exec at 0x7fb7b58e36d0>
+  pre_request: <function PreRequest.pre_request at 0x7fb7b58e37f0>
+  post_request: <function PostRequest.post_request at 0x7fb7b58e3880>
+  child_exit: <function ChildExit.child_exit at 0x7fb7b58e39a0>
+  worker_exit: <function WorkerExit.worker_exit at 0x7fb7b58e3ac0>
+  nworkers_changed: <function NumWorkersChanged.nworkers_changed at 0x7fb7b58e3be0>
+  on_exit: <function OnExit.on_exit at 0x7fb7b58e3d00>
+  ssl_context: <function NewSSLContext.ssl_context at 0x7fb7b58e3e20>
+  proxy_protocol: False
+  proxy_allow_ips: ['127.0.0.1']
+  keyfile: None
+  certfile: None
+  ssl_version: 2
+  cert_reqs: 0
+  ca_certs: None
+  suppress_ragged_eofs: True
+  do_handshake_on_connect: False
+  ciphers: None
+  raw_paste_global_conf: []
+  strip_header_spaces: False
+[2023-09-29 11:48:32 +0100] [20553] [INFO] Starting gunicorn 21.2.0
+[2023-09-29 11:48:32 +0100] [20553] [DEBUG] Arbiter booted
+[2023-09-29 11:48:32 +0100] [20553] [INFO] Listening at: http://127.0.0.1:8000 (20553)
+[2023-09-29 11:48:32 +0100] [20553] [INFO] Using worker: sync
+[2023-09-29 11:48:32 +0100] [20554] [INFO] Booting worker with pid: 20554
+[2023-09-29 11:48:32 +0100] [20554] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/arbiter.py", line 609, in spawn_worker
+    worker.init_process()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 134, in init_process
+    self.load_wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/base.py", line 67, in wsgi
+    self.callable = self.load()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
+    return self.load_wsgiapp()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/util.py", line 371, in import_app
+    mod = importlib.import_module(module)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1004, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'your_app'
+[2023-09-29 11:48:32 +0100] [20554] [INFO] Worker exiting (pid: 20554)
+[2023-09-29 11:48:32 +0100] [20555] [INFO] Booting worker with pid: 20555
+[2023-09-29 11:48:32 +0100] [20555] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/arbiter.py", line 609, in spawn_worker
+    worker.init_process()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 134, in init_process
+    self.load_wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/base.py", line 67, in wsgi
+    self.callable = self.load()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
+    return self.load_wsgiapp()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/util.py", line 371, in import_app
+    mod = importlib.import_module(module)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1004, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'your_app'
+[2023-09-29 11:48:32 +0100] [20555] [INFO] Worker exiting (pid: 20555)
+[2023-09-29 11:48:32 +0100] [20553] [ERROR] Worker (pid:20554) exited with code 3
+[2023-09-29 11:48:32 +0100] [20553] [ERROR] Worker (pid:20555) was sent SIGTERM!
+[2023-09-29 11:48:32 +0100] [20553] [ERROR] Shutting down: Master
+[2023-09-29 11:48:32 +0100] [20553] [ERROR] Reason: Worker failed to boot.
+[2023-09-29 11:48:51 +0100] [20561] [DEBUG] Current configuration:
+  config: ./gunicorn.conf.py
+  wsgi_app: None
+  bind: ['127.0.0.1:8000']
+  backlog: 2048
+  workers: 4
+  worker_class: sync
+  threads: 1
+  worker_connections: 1000
+  max_requests: 0
+  max_requests_jitter: 0
+  timeout: 30
+  graceful_timeout: 30
+  keepalive: 2
+  limit_request_line: 4094
+  limit_request_fields: 100
+  limit_request_field_size: 8190
+  reload: False
+  reload_engine: auto
+  reload_extra_files: []
+  spew: False
+  check_config: False
+  print_config: False
+  preload_app: False
+  sendfile: None
+  reuse_port: False
+  chdir: /Users/chidionyema/documents/code/modeltrainer/src/api
+  daemon: False
+  raw_env: []
+  pidfile: None
+  worker_tmp_dir: None
+  user: 501
+  group: 20
+  umask: 0
+  initgroups: False
+  tmp_upload_dir: None
+  secure_scheme_headers: {'X-FORWARDED-PROTOCOL': 'ssl', 'X-FORWARDED-PROTO': 'https', 'X-FORWARDED-SSL': 'on'}
+  forwarded_allow_ips: ['127.0.0.1']
+  accesslog: access.log
+  disable_redirect_access_to_syslog: False
+  access_log_format: %(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
+  errorlog: error.log
+  loglevel: debug
+  capture_output: False
+  logger_class: gunicorn.glogging.Logger
+  logconfig: None
+  logconfig_dict: {}
+  logconfig_json: None
+  syslog_addr: unix:///var/run/syslog
+  syslog: False
+  syslog_prefix: None
+  syslog_facility: user
+  enable_stdio_inheritance: False
+  statsd_host: None
+  dogstatsd_tags: 
+  statsd_prefix: 
+  proc_name: None
+  default_proc_name: your_app:app
+  pythonpath: None
+  paste: None
+  on_starting: <function OnStarting.on_starting at 0x7fabc5adedd0>
+  on_reload: <function OnReload.on_reload at 0x7fabc5adeef0>
+  when_ready: <function WhenReady.when_ready at 0x7fabc5adf010>
+  pre_fork: <function Prefork.pre_fork at 0x7fabc5adf130>
+  post_fork: <function Postfork.post_fork at 0x7fabc5adf250>
+  post_worker_init: <function PostWorkerInit.post_worker_init at 0x7fabc5adf370>
+  worker_int: <function WorkerInt.worker_int at 0x7fabc5adf490>
+  worker_abort: <function WorkerAbort.worker_abort at 0x7fabc5adf5b0>
+  pre_exec: <function PreExec.pre_exec at 0x7fabc5adf6d0>
+  pre_request: <function PreRequest.pre_request at 0x7fabc5adf7f0>
+  post_request: <function PostRequest.post_request at 0x7fabc5adf880>
+  child_exit: <function ChildExit.child_exit at 0x7fabc5adf9a0>
+  worker_exit: <function WorkerExit.worker_exit at 0x7fabc5adfac0>
+  nworkers_changed: <function NumWorkersChanged.nworkers_changed at 0x7fabc5adfbe0>
+  on_exit: <function OnExit.on_exit at 0x7fabc5adfd00>
+  ssl_context: <function NewSSLContext.ssl_context at 0x7fabc5adfe20>
+  proxy_protocol: False
+  proxy_allow_ips: ['127.0.0.1']
+  keyfile: None
+  certfile: None
+  ssl_version: 2
+  cert_reqs: 0
+  ca_certs: None
+  suppress_ragged_eofs: True
+  do_handshake_on_connect: False
+  ciphers: None
+  raw_paste_global_conf: []
+  strip_header_spaces: False
+[2023-09-29 11:48:51 +0100] [20561] [INFO] Starting gunicorn 21.2.0
+[2023-09-29 11:48:51 +0100] [20561] [DEBUG] Arbiter booted
+[2023-09-29 11:48:51 +0100] [20561] [INFO] Listening at: http://127.0.0.1:8000 (20561)
+[2023-09-29 11:48:51 +0100] [20561] [INFO] Using worker: sync
+[2023-09-29 11:48:51 +0100] [20562] [INFO] Booting worker with pid: 20562
+[2023-09-29 11:48:51 +0100] [20562] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/arbiter.py", line 609, in spawn_worker
+    worker.init_process()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 134, in init_process
+    self.load_wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/base.py", line 67, in wsgi
+    self.callable = self.load()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
+    return self.load_wsgiapp()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/util.py", line 371, in import_app
+    mod = importlib.import_module(module)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1004, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'your_app'
+[2023-09-29 11:48:51 +0100] [20562] [INFO] Worker exiting (pid: 20562)
+[2023-09-29 11:48:51 +0100] [20563] [INFO] Booting worker with pid: 20563
+[2023-09-29 11:48:51 +0100] [20563] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/arbiter.py", line 609, in spawn_worker
+    worker.init_process()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 134, in init_process
+    self.load_wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/base.py", line 67, in wsgi
+    self.callable = self.load()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
+    return self.load_wsgiapp()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/util.py", line 371, in import_app
+    mod = importlib.import_module(module)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1004, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'your_app'
+[2023-09-29 11:48:51 +0100] [20563] [INFO] Worker exiting (pid: 20563)
+[2023-09-29 11:48:51 +0100] [20564] [INFO] Booting worker with pid: 20564
+[2023-09-29 11:48:51 +0100] [20561] [ERROR] Worker (pid:20562) exited with code 3
+[2023-09-29 11:48:51 +0100] [20561] [ERROR] Worker (pid:20563) was sent SIGTERM!
+[2023-09-29 11:48:51 +0100] [20564] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/arbiter.py", line 609, in spawn_worker
+    worker.init_process()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 134, in init_process
+    self.load_wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/base.py", line 67, in wsgi
+    self.callable = self.load()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
+    return self.load_wsgiapp()
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/site-packages/gunicorn/util.py", line 371, in import_app
+    mod = importlib.import_module(module)
+  File "/Users/chidionyema/anaconda3/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1004, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'your_app'
+[2023-09-29 11:48:51 +0100] [20564] [INFO] Worker exiting (pid: 20564)
+[2023-09-29 11:48:51 +0100] [20561] [ERROR] Worker (pid:20564) exited with code 3
