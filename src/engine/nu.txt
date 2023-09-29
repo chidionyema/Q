@@ -1,0 +1,374 @@
+import operator
+from deap import gp, base, creator, tools, algorithms
+import numpy as np
+from sklearn.metrics import mean_squared_error
+
+# ----- Central Configuration -----
+class CentralConfig:
+    GENETIC_PROGRAMMING = {
+        "lag_range": (1, 6),
+        "primitives": [operator.add, operator.sub, operator.mul],
+        "mate_func": gp.cxOnePoint,
+        "mutate_func": gp.mutUniform,
+        "select_func": tools.selTournament,
+        "tournsize": 3,
+        "min_depth": 1,
+        "max_depth": 5,
+        "stats_funcs": {
+            "avg": np.mean,
+            "std": np.std,
+            "min": np.min,
+            "max": np.max
+        }
+    }
+    # Add other configurations for other optimizers as needed.
+
+# ----- Base Optimizer -----
+class Optimizer:
+    def __init__(self, config_override=None):
+        self.config = self._load_config(config_override)
+
+    def _load_config(self, config_override):
+        default_config = getattr(CentralConfig, self.default_config_key, {})
+        if config_override:
+            # Merge default config with provided config
+            return {**default_config, **config_override}
+        return default_config
+
+    def optimize(self):
+        raise NotImplementedError("Subclasses must implement the optimize method.")
+
+# ----- GeneticProgrammingOptimizer -----
+class GeneticProgrammingOptimizer(Optimizer):
+    default_config_key = 'GENETIC_PROGRAMMING'
+
+    def __init__(self, config_override=None):
+        super().__init__(config_override)
+        self.lag_range = self.config['lag_range']
+        self.primitives = self.config['primitives']
+        # ... rest of the configurations loaded similarly ...
+
+        self.pset = self._define_primitives()
+        self.toolbox = self._setup_toolbox()
+
+    def _define_primitives(self):
+        """Defines and returns the primitive set for GP."""
+        pset = gp.PrimitiveSetTyped("main", [], float)
+        for primitive in self.primitives:
+            pset.addPrimitive(primitive, [float, float], float)
+        for lag in range(self.lag_range[0], self.lag_range[1]):
+            pset.addTerminal(float(lag), float, name=f"Lag_{lag}")
+        return pset
+
+    def _setup_toolbox(self):
+        """Configures and returns DEAP's toolbox for GP."""
+        toolbox = base.Toolbox()
+        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+        creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin, pset=self.pset)
+        
+        toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=self.config['min_depth'], max_=self.config['max_depth'])
+        toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
+        toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+        toolbox.register("compile", gp.compile, pset=self.pset)
+        
+        toolbox.register("evaluate", self._evaluate)
+        toolbox.register("select", self.config['select_func'], tournsize=self.config['tournsize'])
+        toolbox.register("mate", self.config['mate_func'])
+        toolbox.register("expr_mut", gp.genFull, min_=0, max_=3)
+        toolbox.register("mutate", self.config['mutate_func'], expr=toolbox.expr_mut, pset=self.pset)
+        
+        return toolbox
+
+    def _evaluate(self, individual):
+        """Evaluation function for optimization."""
+        func = self.toolbox.compile(expr=individual)
+        predictions = [func() for _ in range(len(X_test))]
+        mse = mean_squared_error(y_test, predictions)
+        return mse,
+
+    def optimize(self):
+        """Main optimization function."""
+        population = self.toolbox.population(n=100)
+        hof = tools.HallOfFame(1)
+
+        stats = tools.Statistics(lambda ind: ind.fitness.values)
+        for key, func in self.config['stats_funcs'].items():
+            stats.register(key, func)
+
+        algorithms.eaSimple(population, self.toolbox, 0.7, 0.3, 50, stats, halloffame=hof)
+        
+        # Return the best strategy as a callable function
+        best_expr = hof[0]
+        best_func = self.toolbox.compile(expr=best_expr)
+        return best_func
+
+# ----- Example Usage -----
+if __name__ == "__main__":
+    # Mock dataset (to make the code standalone and executable)
+    X_test = [i for i in range(10)]
+    y_test = [2*i for i in range(10)]
+    
+    optimizer = GeneticProgrammingOptimizer()
+    best_function = optimizer.optimize()
+    print(f"Best Function's Result for x=5: {best_function()}")
+
+
+    import random
+import logging
+import ray
+import optuna
+from skopt import BayesSearchCV
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
+from pyswarm import pso
+from scipy.optimize import minimize
+from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
+from deap import base, creator, tools, algorithms
+
+# Define your model, X_train, and y_train
+
+# Centralized Configuration
+class OptimizerConfig:
+    RANDOM_SEARCH = {
+        "param_distributions": {...},
+        "n_iter": 100
+    }
+    BAYESIAN = {
+        "param_space": {...},
+        "n_iter": 50
+    }
+    PSO = {}
+    SIMULATED_ANNEALING = {}
+    TPE = {}
+    OPTUNA_CMAES = {}
+    DEAP_GA = {}
+    GRID_SEARCH = {
+        "param_grid": {...}
+    }
+    NELDER_MEAD = {}
+    SMBO = {}
+
+# Factory Pattern for Optimizer Creation
+class OptimizerFactory:
+    @staticmethod
+    def create(optimizer_type, config):
+        if optimizer_type == "RandomSearch":
+            return RandomSearchOptimizer(config)
+        elif optimizer_type == "Bayesian":
+            return BayesianOptimizer(config)
+        elif optimizer_type == "PSO":
+            return PSOOptimizer()
+        elif optimizer_type == "SimulatedAnnealing":
+            return SimulatedAnnealingOptimizer()
+        elif optimizer_type == "TPE":
+            return TPEOptimizer(config)
+        elif optimizer_type == "OptunaCMAES":
+            return OptunaCMAESOptimizer(config)
+        elif optimizer_type == "DEAPGA":
+            return DEAPGAOptimizer(config)
+        elif optimizer_type == "GridSearch":
+            return GridSearchOptimizer(config)
+        elif optimizer_type == "NelderMead":
+            return NelderMeadOptimizer()
+        elif optimizer_type == "SMBO":
+            return SMOptimization()
+        # Add more optimizer types as needed
+
+# Shared Utility Functions
+class OptimizerUtilities:
+    @staticmethod
+    def common_loss_function(params):
+        # Define a centralized loss function
+        pass
+    # Add other utility functions as needed
+
+# Callbacks/Listeners
+class OptimizerCallback:
+    def post_optimize(self, model, results):
+        # Save model, log results, etc.
+        pass
+
+# Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Unified Return Structure
+class Result:
+    def __init__(self, best_params, best_score):
+        self.best_params = best_params
+        self.best_score = best_score
+
+# 1. Randomized Search (using RandomizedSearchCV from scikit-learn)
+class RandomSearchOptimizer(Optimizer):
+    def __init__(self, config):
+        self.config = config
+
+    def optimize(self, model, X_train, y_train):
+        random_search = RandomizedSearchCV(
+            model.algorithm_instance,
+            param_distributions=self.config["param_distributions"],
+            n_iter=self.config["n_iter"]
+        )
+        random_search.fit(X_train, y_train)
+
+        # Log results
+        logger.info(f"Best score: {random_search.best_score_}")
+
+        return Result(random_search.best_params_, random_search.best_score_)
+
+# 2. Bayesian Optimization (using BayesSearchCV from scikit-learn)
+class BayesianOptimizer(Optimizer):
+    def __init__(self, config):
+        self.config = config
+
+    def optimize(self, model, X_train, y_train):
+        bayes_search = BayesSearchCV(
+            model.algorithm_instance,
+            search_spaces=self.config["param_space"],
+            n_iter=self.config["n_iter"]
+        )
+        bayes_search.fit(X_train, y_train)
+
+        # Log results
+        logger.info(f"Best score: {bayes_search.best_score_}")
+
+        return Result(bayes_search.best_params_, bayes_search.best_score_)
+
+# 3. Particle Swarm Optimization (PSO) - using pyswarm
+class PSOOptimizer(Optimizer):
+    def optimize(self, model, X_train, y_train):
+        def loss_function(params):
+            model.algorithm_instance.set_params(**params)
+            model.algorithm_instance.fit(X_train, y_train)
+            return -1 * model.algorithm_instance.score(X_train, y_train)
+
+        lb = [0.001, 1]  # Lower bounds for parameters, e.g., learning rate and regularization
+        ub = [0.1, 100]  # Upper bounds
+
+        xopt, fopt = pso(loss_function, lb, ub)
+        optimal_parameters = dict(zip(['param1', 'param2'], xopt))
+        model.algorithm_instance.set_params(**optimal_parameters)
+
+# 4. Simulated Annealing - using scipy.optimize
+class SimulatedAnnealingOptimizer(Optimizer):
+    def optimize(self, model, X_train, y_train):
+        def loss_function(params):
+            model.algorithm_instance.set_params(**params)
+            model.algorithm_instance.fit(X_train, y_train)
+            return -1 * model.algorithm_instance.score(X_train, y_train)
+
+        result = minimize(loss_function, [0.01, 10], method='SLSQP')
+        optimal_parameters = dict(zip(['param1', 'param2'], result.x))
+        model.algorithm_instance.set_params(**optimal_parameters)
+
+# 5. Tree-structured Parzen Estimator (TPE) - using hyperopt
+class TPEOptimizer(Optimizer):
+    def __init__(self, config):
+        self.config = config
+
+    def optimize(self, model, X_train, y_train):
+        def objective(params):
+            model.algorithm_instance.set_params(**params)
+            model.algorithm_instance.fit(X_train, y_train)
+            loss = -1 * model.algorithm_instance.score(X_train, y_train)
+            return {'loss': loss, 'status': STATUS_OK}
+
+        trials = Trials()
+        best = fmin(fn=objective, space=self.config["space"], algo=tpe.suggest, max_evals=100, trials=trials)
+        model.algorithm_instance.set_params(**best)
+
+# 6. Optuna CMA-ES Optimization - using optuna
+class OptunaCMAESOptimizer(Optimizer):
+    def __init__(self, config):
+        self.config = config
+
+    def optimize(self, model, X_train, y_train):
+        sampler = optuna.samplers.CmaEsSampler()
+        study = optuna.create_study(sampler=sampler, direction='minimize')
+        study.optimize(self.config["objective_function"], n_trials=100)
+        best_params = study.best_params
+        model.algorithm_instance.set_params(**best_params)
+
+# 7. Differential Evolution (DEAP GA Optimization) - using deap
+from deap import base, creator, tools, algorithms
+
+class DEAPGAOptimizer(Optimizer):
+    def __init__(self, config):
+        self.config = config
+
+    def optimize(self, model, X_train, y_train):
+        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+        creator.create("Individual", list, fitness=creator.FitnessMin)
+
+        # Sample a population and evolve it using a genetic algorithm
+        population = self.config["toolbox"].population(n=100)
+        algorithms.eaSimple(population, self.config["toolbox"], cxpb=0.5, mutpb=0.2, ngen=100)
+
+        # Extract the best individual's parameters and set them to the model
+        best_individual = tools.selBest(population, k=1)[0]
+        best_params = dict(zip(model.parameters_keys, best_individual))
+        model.algorithm_instance.set_params(**best_params)
+
+# 8. Grid Search (using GridSearchCV from scikit-learn)
+class GridSearchOptimizer(Optimizer):
+    def __init__(self, config):
+        self.config = config
+
+    def optimize(self, model, X_train, y_train):
+        grid_search = GridSearchCV(
+            model.algorithm_instance,
+            param_grid=self.config["param_grid"]
+        )
+        grid_search.fit(X_train, y_train)
+
+        # Log results
+        logger.info(f"Best score: {grid_search.best_score_}")
+
+        return Result(grid_search.best_params_, grid_search.best_score_)
+
+# 9. Nelder-Mead Optimization (using scipy.optimize)
+class NelderMeadOptimizer(Optimizer):
+    def optimize(self, model, X_train, y_train):
+        def loss_function(params):
+            model.algorithm_instance.set_params(**params)
+            model.algorithm_instance.fit(X_train, y_train)
+            return -1 * model.algorithm_instance.score(X_train, y_train)
+
+        result = minimize(loss_function, [0.01, 10], method='Nelder-Mead')
+        optimal_parameters = dict(zip(['param1', 'param2'], result.x))
+        model.algorithm_instance.set_params(**optimal_parameters)
+
+# 10. Sequential Model-Based Optimization (SMBO) (Placeholder - Custom Implementation Required)
+class SMOptimization(Optimizer):
+    def optimize(self, model, X_train, y_train):
+        # Implement sequential model-based optimization (SMBO) here
+        pass
+
+# Additional Optimizers can be added following a similar pattern
+
+# Unified Optimizer Interface
+class Optimizer:
+    def __init__(self, config):
+        self.config = config
+
+    def optimize(self, model, X_train, y_train):
+        raise NotImplementedError("Subclasses must implement `optimize`")
+
+# Unified Result Structure
+class Result:
+    def __init__(self, best_params, best_score):
+        self.best_params = best_params
+        self.best_score = best_score
+
+# Define your model, X_train, and y_train
+model = YourModel()  # Replace with your model class
+X_train, X_test, y_train, y_test = load_data()  # Replace with your data loading logic
+
+# Example of using the OptimizerFactory to create and run an optimizer
+config = OptimizerConfig.RANDOM_SEARCH
+optimizer = OptimizerFactory.create("RandomSearch", config)
+result = optimizer.optimize(model, X_train, y_train)
+logger.info(f"Best parameters: {result.best_params}")
+logger.info(f"Best score: {result.best_score}")
+

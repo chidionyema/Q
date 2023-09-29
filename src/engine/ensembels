@@ -1,0 +1,134 @@
+from collections import defaultdict, Counter
+from sklearn.ensemble import BaggingClassifier, RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
+from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
+
+class EnsembleStrategy:
+    def combine(self, predictions):
+        raise NotImplementedError("Subclasses must implement the combine method.")
+
+class ThresholdVotingStrategy(EnsembleStrategy):
+    def __init__(self, threshold=0.5):
+        self.threshold = threshold
+        
+    def combine(self, predictions):
+        """Assumes predictions are probability values."""
+        mean_prob = sum(predictions) / len(predictions)
+        return 1 if mean_prob > self.threshold else 0
+
+class BordaCountStrategy(EnsembleStrategy):
+    def combine(self, predictions):
+        """Assumes each classifier ranks each class."""
+        scores = defaultdict(int)
+        for prediction in predictions:
+            for rank, class_ in enumerate(prediction):
+                scores[class_] += rank
+        return min(scores, key=scores.get)
+
+class SoftVotingStrategy(EnsembleStrategy):
+    def combine(self, predictions):
+        """Assumes predictions are probability values."""
+        summed = sum(predictions)
+        avg = summed / len(predictions)
+        return round(avg)
+
+class MaxVotingStrategy(EnsembleStrategy):
+    def combine(self, predictions):
+        flattened_predictions = [pred for sublist in predictions for pred in sublist]
+        return max(set(flattened_predictions), key=flattened_predictions.count)
+
+class MinVotingStrategy(EnsembleStrategy):
+    def combine(self, predictions):
+        flattened_predictions = [pred for sublist in predictions for pred in sublist]
+        return min(set(flattened_predictions), key=flattened_predictions.count)
+
+class ProductStrategy(EnsembleStrategy):
+    def combine(self, predictions):
+        """Assumes predictions are probability values between 0 and 1."""
+        flattened_predictions = [pred for sublist in predictions for pred in sublist]
+        product = 1
+        for pred in flattened_predictions:
+            product *= pred
+        return product
+
+class RankAveragingStrategy(EnsembleStrategy):
+    def combine(self, predictions):
+        """Assumes classifiers return a ranking for each class."""
+        averaged_rank = [sum(rank) / len(rank) for rank in zip(*predictions)]
+        return averaged_rank.index(min(averaged_rank))
+
+class MajorityVoteStrategy(EnsembleStrategy):
+    def combine(self, predictions):
+        """Return the mode (most common) prediction."""
+        flattened_predictions = [pred for sublist in predictions for pred in sublist]
+        return Counter(flattened_predictions).most_common(1)[0][0]
+
+class AverageStrategy(EnsembleStrategy):
+    def combine(self, predictions):
+        """Assumes predictions are continuous values."""
+        flattened_predictions = [pred for sublist in predictions for pred in sublist]
+        return sum(flattened_predictions) / len(flattened_predictions)
+
+class WeightedAverageStrategy(EnsembleStrategy):
+    def __init__(self, weights):
+        self.weights = weights
+        
+    def combine(self, predictions):
+        """Assumes predictions are continuous values and uses weighted average."""
+        weighted_sum = sum(w * pred for w, pred in zip(self.weights, predictions))
+        return weighted_sum / sum(self.weights)
+
+# Ensemble strategies implemented using libraries
+class BaggingStrategy(EnsembleStrategy):
+    def __init__(self, base_estimator, n_estimators=10):
+        self.ensemble = BaggingClassifier(base_estimator, n_estimators=n_estimators)
+        
+    def combine(self, predictions):
+        # Assuming predictions are features and labels are targets
+        self.ensemble.fit(predictions, labels)
+        return self.ensemble.predict(predictions)
+
+class RandomForestStrategy(EnsembleStrategy):
+    def __init__(self, n_estimators=100):
+        self.ensemble = RandomForestClassifier(n_estimators=n_estimators)
+        
+    def combine(self, predictions):
+        # Assuming predictions are features and labels are targets
+        self.ensemble.fit(predictions, labels)
+        return self.ensemble.predict(predictions)
+
+class AdaBoostStrategy(EnsembleStrategy):
+    def __init__(self, base_estimator, n_estimators=50):
+        self.ensemble = AdaBoostClassifier(base_estimator, n_estimators=n_estimators)
+        
+    def combine(self, predictions):
+        # Assuming predictions are features and labels are targets
+        self.ensemble.fit(predictions, labels)
+        return self.ensemble.predict(predictions)
+
+class GradientBoostingStrategy(EnsembleStrategy):
+    def __init__(self, n_estimators=100):
+        self.ensemble = GradientBoostingClassifier(n_estimators=n_estimators)
+        
+    def combine(self, predictions):
+        # Assuming predictions are features and labels are targets
+        self.ensemble.fit(predictions, labels)
+        return self.ensemble.predict(predictions)
+
+class XGBoostStrategy(EnsembleStrategy):
+    def __init__(self, n_estimators=100):
+        self.ensemble = XGBClassifier(n_estimators=n_estimators)
+        
+    def combine(self, predictions):
+        # Assuming predictions are features and labels are targets
+        self.ensemble.fit(predictions, labels)
+        return self.ensemble.predict(predictions)
+
+class LightGBMStrategy(EnsembleStrategy):
+    def __init__(self, n_estimators=100):
+        self.ensemble = LGBMClassifier(n_estimators=n_estimators)
+        
+    def combine(self, predictions):
+        # Assuming predictions are features and labels are targets
+        self.ensemble.fit(predictions, labels)
+        return self.ensemble.predict(predictions)
