@@ -273,13 +273,14 @@ class DataPreparation:
             return None
 
     def process_days_concurrently(self):
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
             results = list(executor.map(self.process_day, range(len(self.dataset))))
 
         # Filter out None values (skipped days)
         processed_data = [result for result in results if result is not None]
 
         return processed_data
+
 
     def prepare_data_structure(self):
         data_structure = []

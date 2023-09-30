@@ -24,17 +24,18 @@ from flask_limiter import Limiter
 from flask_migrate import Migrate
 from flask_mail import Mail, Message
 from flask_oauthlib.client import OAuth
-from celery_config import celery
-from flask_socketio import SocketIO, emit
+
+from flask_socketio import SocketIO, emit 
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import jwt
 import secrets
-
+from app.tasks import train_model_task
 from validate_email import validate_email
 from functools import wraps
-from engine import Pipeline2, RandomForest, DataLoader
-
+from app.engine import Pipeline2, RandomForest, DataLoader
+from app import socketio, db
+from app.dbdata import User, PasswordResetToken, TaskResult
 
 load_dotenv()
 
@@ -47,9 +48,10 @@ sql_alchemy_track_modifications = os.environ.get('SQLALCHEMY_TRACK_MODIFICATIONS
 flask_app = os.environ.get('FLASK_APP')
 flask_env = os.environ.get('FLASK_ENV')
 
+from app import create_app
 
+app = create_app()
 
-app = Flask(__name__)
 
 app.debug = True
 app.logger.setLevel(logging.DEBUG)
@@ -93,8 +95,7 @@ CORS(app, resources={r"/*": {
 limiter = Limiter(app)
 # If you're using multiple instances or servers, make sure that each one of them has access to this Redis server.
 
-socketio = SocketIO(app, message_queue='redis://localhost:6379/0', cors_allowed_origins="*")
-db = SQLAlchemy(app)
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 cert_path = os.environ.get('CERT_PATH')
 key_path = os.environ.get('KEY_PATH')
@@ -105,39 +106,6 @@ JWT_SECRET = os.environ.get('JWT_SECRET')
 
 migrate = Migrate(app, db) 
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=True)  # It's good to ensure this is securely hashed if you use it
-    name = db.Column(db.String(120), nullable=True)
-    provider = db.Column(db.String(50), nullable=True)
-    provider_id = db.Column(db.String(120), unique=True, nullable=True)
-    access_token = db.Column(db.String(500), nullable=True)
-    refresh_token = db.Column(db.String(500), nullable=True)
-    first_login = db.Column(db.Boolean, default=True, nullable=True)
-    is_active = db.Column(db.Boolean, default=False) 
-    
-
-    def __repr__(self):
-            return f"<User {self.email}>"    
-
-
-class PasswordResetToken(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    token = db.Column(db.String(64), unique=True, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    expiration_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    def __init__(self, token, user_id, expiration_time):
-        self.token = token
-        self.user_id = user_id
-        self.expiration_time = expiration_time
-
-class TaskResult(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=True)
-    task_id = db.Column(db.String, unique=True, nullable=False)
-    result = db.Column(db.JSON, nullable=False)
 
 
 def token_required(f):
@@ -715,7 +683,7 @@ def fetch_optimizers():
         return jsonify({'error': 'JSON file not found'}), 404
 
 
-from celery_tasks_module import train_model_task
+
 
 VALID_MODEL_TYPES = ["random_forest", "linear_regression"]  # Add all valid model types here
 import logging
@@ -776,7 +744,8 @@ def disconnect():
     # Use Gevent to run your Flask-SocketIO application with SSL/TLS
      # socketio.run(app, debug=True, host='0.0.0.0', port=5000, keyfile='./api.dev.io.key', certfile='./api.dev.io.crt')
 if __name__ == '__main__':
-    import os
+   
+
     from pathlib import Path
 
     # Get the absolute paths to the certificate and key files
@@ -788,7 +757,7 @@ if __name__ == '__main__':
         raise FileNotFoundError("Certificate or key file not found.")
 
     # Use the absolute paths in the ssl_context parameter
-    socketio.run(app, debug=True, port=5000, ssl_context=(cert_path, key_path))
+    socketio.init_app(app)
 
 
 
