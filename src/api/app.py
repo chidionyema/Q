@@ -1,3 +1,8 @@
+# from gevent import monkey
+# monkey.patch_all()
+import eventlet
+eventlet.monkey_patch(socket=True, select=True)
+
 # Python built-ins
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
@@ -17,11 +22,15 @@ from functools import wraps
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_migrate import Migrate
+from flask_mail import Mail, Message
 from flask_oauthlib.client import OAuth
+from celery_config import celery
 from flask_socketio import SocketIO, emit
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import jwt
+import secrets
+
 from validate_email import validate_email
 from functools import wraps
 from engine import Pipeline2, RandomForest, DataLoader
@@ -48,6 +57,19 @@ handler = logging.StreamHandler()
 app.logger.addHandler(handler)
 
 
+
+
+app.config['MAIL_SERVER'] = 'smtp.example.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = 'your_username'
+app.config['MAIL_PASSWORD'] = 'your_password'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_DEFAULT_SENDER'] = 'your_email@example.com'
+
+# Initialize Flask-Mail
+mail = Mail(app)
+
 # Flask app configurations
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
@@ -69,9 +91,9 @@ CORS(app, resources={r"/*": {
 
 
 limiter = Limiter(app)
+# If you're using multiple instances or servers, make sure that each one of them has access to this Redis server.
 
-
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, message_queue='redis://localhost:6379/0', cors_allowed_origins="*")
 db = SQLAlchemy(app)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 cert_path = os.environ.get('CERT_PATH')
@@ -93,11 +115,30 @@ class User(db.Model):
     access_token = db.Column(db.String(500), nullable=True)
     refresh_token = db.Column(db.String(500), nullable=True)
     first_login = db.Column(db.Boolean, default=True, nullable=True)
-
-
+    is_active = db.Column(db.Boolean, default=False) 
+    
 
     def __repr__(self):
             return f"<User {self.email}>"    
+
+
+class PasswordResetToken(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(64), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    expiration_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __init__(self, token, user_id, expiration_time):
+        self.token = token
+        self.user_id = user_id
+        self.expiration_time = expiration_time
+
+class TaskResult(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=True)
+    task_id = db.Column(db.String, unique=True, nullable=False)
+    result = db.Column(db.JSON, nullable=False)
+
 
 def token_required(f):
     @wraps(f)
@@ -129,6 +170,68 @@ def not_found(e):
 def internal_server_error(e):
     return jsonify(error=str(e)), 500
 
+
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def request_password_reset():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+
+        if user:
+            # Generate a password reset token
+            reset_token = generate_reset_token()
+            expiration_time = datetime.utcnow() + timedelta(seconds=app.config['PASSWORD_RESET_EXPIRATION'])
+            token_entry = PasswordResetToken(token=reset_token, user_id=user.id, expiration_time=expiration_time)
+            db.session.add(token_entry)
+            db.session.commit()
+
+            # Send a password reset email asynchronously using Celery
+            reset_link = url_for('reset_password', token=reset_token, _external=True)
+            send_password_reset_email.apply_async(args=[email, reset_link])
+
+            flash("Password reset email sent. Check your email for instructions.", 'success')
+            return redirect(url_for('login'))
+        else:
+            flash("Email not found. Please register.", 'danger')
+            return redirect(url_for('register'))
+
+    return render_template('reset_password.html')
+
+@app.route('/reset_password/<string:token>', methods=['GET', 'POST'])
+def reset_password(token):
+    token_entry = PasswordResetToken.query.filter_by(token=token).first()
+
+    if not token_entry:
+        flash("Invalid or expired reset token.", 'danger')
+        return redirect(url_for('login'))
+
+    if datetime.utcnow() > token_entry.expiration_time:
+        # Token has expired
+        db.session.delete(token_entry)
+        db.session.commit()
+        flash("The reset token has expired. Please request a new one.", 'danger')
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        new_password = request.form.get('new_password')
+
+        if len(new_password) < 8:
+            flash("Password should be at least 8 characters long.", 'danger')
+        else:
+            user = User.query.get(token_entry.user_id)
+            user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+            db.session.delete(token_entry)
+            db.session.commit()
+            flash("Password reset successful. You can now log in with your new password.", 'success')
+            return redirect(url_for('login'))
+
+    return render_template('reset_password_form.html')
+
+def generate_reset_token():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+
+    
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
@@ -172,7 +275,7 @@ def login():
         token = jwt.encode({
         'user_id': user.id,
         'exp': datetime.utcnow() + timedelta(hours=1)}, JWT_SECRET, algorithm='HS256')
-        return jsonify({"message": "Logged in!", "token": token}), 200
+        return jsonify({"token": token, "email": email})
     return jsonify({"message": "Invalid credentials!"}), 401
 
 
@@ -395,7 +498,7 @@ def authorized_google():
             raise ValueError("Failed to retrieve or create user.")
   
 
-         # If not their first login or after handling the first login
+
         token = generate_jwt_token_for_user(user)
         print("generated new jwt token")
 
@@ -404,6 +507,13 @@ def authorized_google():
         # Replace 'YOUR_CALLBACK_URL' with the actual callback URL
         callback_url = 'https://ui.dev.io:3000/callback' + f'?token={token}'
         print("set callback and sending back response")
+
+        if user.is_active == False:
+            activation_token = generate_activation_token()
+        # Send an email with the activation link asynchronously
+            activation_link = url_for('activate_account', token=activation_token, _external=True)
+            #send_activation_email.apply_async(args=[email, activation_link])
+
 
         response = make_response(redirect(callback_url))
         response.set_cookie(
@@ -429,9 +539,27 @@ def authorized_google():
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
+   
         return jsonify({"error": "An unexpected error occurred."}), 500
 
+# Example user activation logic
+@app.route('/activate_account/<string:token>', methods=['GET'])
+def activate_account(token):
+    # Check if the token is valid (you may have your own token validation logic)
+    if True:
+        # Activate the user's account (you may have your own activation logic)
+        #  activate_user(token)
+        flash("Account activated successfully!", 'success')
+        return redirect(url_for('login'))  # Redirect to the login page
+    else:
+        flash("Invalid or expired activation token.", 'danger')
+        return redirect(url_for('login'))  # Redirect to the login page with an error message
 
+
+def generate_activation_token():
+    # Generate a random token using the secrets module
+    activation_token = secrets.token_hex(16)  # You can adjust the token length as needed
+    return activation_token
 
 
 
@@ -448,6 +576,7 @@ def retrieve_or_create_user(email, access_token, refresh_token, provider="google
             email=email,  # Use the provided email parameter
             name=email,  # Use the provided email as the name (you can modify this as needed)
             access_token=access_token,
+            is_active=False,
             refresh_token=refresh_token,
             provider=provider  # Setting the provider here
         )
@@ -586,7 +715,13 @@ def fetch_optimizers():
         return jsonify({'error': 'JSON file not found'}), 404
 
 
+from celery_tasks_module import train_model_task
+
+VALID_MODEL_TYPES = ["random_forest", "linear_regression"]  # Add all valid model types here
+import logging
+
 @app.route('/startTraining', methods=['POST'])
+@limiter.limit("5 per minute")
 def start_training():
     try:
         data = request.json
@@ -595,47 +730,36 @@ def start_training():
         end_date = data.get("end_date")
         model = data.get("model")
 
+        # Logging: Log the incoming data
+        logging.info(f"Received data: {data}")
+
+        # Check for valid model type
+       # if model not in VALID_MODEL_TYPES:
+      #      return jsonify({'error': 'Invalid model type'}), 400
+
         # Basic data validation (extend as necessary)
         if not all([symbol, start_date, end_date, model]):
-            abort(400, "Missing or invalid data")
-
-        # Validate date format
-        datetime.strptime(start_date, "%Y-%m-%d")
-        datetime.strptime(end_date, "%Y-%m-%d")
-
-        # Ensure the symbol is valid (add more validation if needed)
-        if not symbol_is_valid(symbol):
-            abort(400, "Invalid symbol")
-
-        # Rest of your code...
+            error_message = 'Missing or invalid data'
+            # Logging: Log the error message
+            logging.error(error_message)
+            return jsonify({'error': error_message}), 400
         
-        # Sample usage of model builder and optimizer
-        rf_builder = ModelBuilder(RandomForestRegressor, optimizer=GridSearchOptimizer(param_grid={"n_estimators": [10, 50, 100]}))
+        # Launch the Celery task
+        task = train_model_task.delay(symbol, start_date, end_date, model)
 
-        # Sample usage of the data processing pipeline
-        stocks_info = [(symbol, start_date, end_date, 14, 3, rf_builder)]
-        pipeline = Pipeline2(stocks_info)
-        predictions = pipeline.process_data_pipeline()
+        # Logging: Log the task ID and status
+        logging.info(f"Task ID: {task.id}, Status: Training started")
 
-        mae_values = []  # Store MAE values to send to the client
-
-        for prediction in predictions:
-            si, test_predictions, mae_val, mae_test = prediction
-            mae_values.append({'mae_val': mae_val, 'mae_test': mae_test})
-
-        return jsonify({'status': 'Training completed', 'mae_values': mae_values}), 202
-
-    except ValueError as ve:
-        app.logger.error("ValueError: %s", str(ve))
-        return jsonify({'error': 'Invalid date format.'}), 400
-    except Exception as e:
-        app.logger.error("An error occurred: %s", str(e))
-        return jsonify({'error': 'An error occurred.'}), 500
-
+        # Return the task ID to the client, which they can use to query the status and results later
+        return jsonify({'status': 'Training started', 'task_id': task.id}), 202
 
     except Exception as e:
+        # Logging: Log the exception
+        logging.exception("An exception occurred")
         # Send error message to client
         return jsonify({'error': str(e)}), 500
+
+
 
 
 @socketio.on('connect', namespace='/training')
@@ -648,8 +772,24 @@ def disconnect():
     print("Client disconnected")
 
 
+ # if __name__ == '__main__':
+    # Use Gevent to run your Flask-SocketIO application with SSL/TLS
+     # socketio.run(app, debug=True, host='0.0.0.0', port=5000, keyfile='./api.dev.io.key', certfile='./api.dev.io.crt')
 if __name__ == '__main__':
-    socketio.run(app, debug=True, port=5000, ssl_context=('./api.dev.io.key', './api.dev.io.crt'))
+    import os
+    from pathlib import Path
+
+    # Get the absolute paths to the certificate and key files
+    cert_path = os.path.abspath('api.dev.io.crt')
+    key_path = os.path.abspath('api.dev.io.key')
+
+    # Check if the certificate and key files exist
+    if not (os.path.exists(cert_path) and os.path.exists(key_path)):
+        raise FileNotFoundError("Certificate or key file not found.")
+
+    # Use the absolute paths in the ssl_context parameter
+    socketio.run(app, debug=True, port=5000, ssl_context=(cert_path, key_path))
+
 
 
 

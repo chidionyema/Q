@@ -1,0 +1,54 @@
+# ------------------------------------
+# CELERY & REDIS SETUP & MONITORING
+# ------------------------------------
+
+# ------------------------------
+# 1. Celery Application Setup:
+# ------------------------------
+from celery import Celery
+
+# Initializing Celery app with a Redis broker
+app = Celery('tasks', broker='redis://localhost:6379/0')
+
+@app.task
+def add(x, y):
+    """Sample Task: Adds two numbers."""
+    return x + y
+
+# If you plan to run this as a script, you can include the following:
+if __name__ == "__main__":
+    app.start()
+
+# --------------------------------
+# 2. Starting Celery from Terminal:
+# --------------------------------
+# Command: celery -A <filename_without_extension> worker --loglevel=info
+
+# --------------------------------------------------------
+# 3. Setting Up Redis:
+# --------------------------------------------------------
+# On Linux:
+# sudo apt-get update
+# sudo apt-get install redis-server
+
+# On macOS (using Homebrew):
+# brew install redis
+
+# Start Redis server:
+# redis-server
+
+# ---------------------------------------------------------
+# 4. Monitoring with Flower:
+# ---------------------------------------------------------
+# Install Flower via pip:
+# pip install flower
+
+# Start Flower to monitor Celery tasks:
+# celery -A <filename_without_extension> flower
+
+# ----------------------------------------------------------------------
+# 5. Troubleshooting:
+# ----------------------------------------------------------------------
+# - Ensure tasks are discoverable: If tasks are in a different module, import them.
+# - Check if the Redis server is running and accessible.
+# - Ensure that the Celery app's name and the broker URL are correctly set.
