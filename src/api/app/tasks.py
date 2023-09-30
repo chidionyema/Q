@@ -22,15 +22,7 @@ def send_password_reset_email(email, reset_link):
         msg.body = f'Click the following link to reset your password: {reset_link}'
         mail.send(msg)
 
-from flask import current_app
-from flask_socketio import SocketIO
 
-# Initialize socketio
-socketio = SocketIO()
-
-def background_emit(event_name, data):
-    with app.app_context():
-        socketio.emit(event_name, data, namespace='/training')
 
 @celery.task(bind=True)
 def train_model_task(self, symbol, start_date, end_date, model):
@@ -59,11 +51,11 @@ def train_model_task(self, symbol, start_date, end_date, model):
             db.session.add(result)
             db.session.commit()
 
-            # Update the task progress to 100% upon completion
-            self.update_state(state='PROGRESS', meta={'progress': 100})
-
-            # Emit the results through sockets to the frontend in a background task
-            socketio.start_background_task(background_emit, 'training_complete', {'progress': 100, 'message': 'Training completed!', 'predictions': mae_values})
+            socketio.emit('training_complete', {
+                'progress': 100,
+                'message': 'Training completed!',
+                'predictions': mae_values
+            })
 
             return mae_values
 

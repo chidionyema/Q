@@ -48,18 +48,12 @@ sql_alchemy_track_modifications = os.environ.get('SQLALCHEMY_TRACK_MODIFICATIONS
 flask_app = os.environ.get('FLASK_APP')
 flask_env = os.environ.get('FLASK_ENV')
 
-from app import create_app
-
-app = create_app()
-
-
+from app import app
+#app = create_app()
 app.debug = True
 app.logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
 app.logger.addHandler(handler)
-
-
-
 
 app.config['MAIL_SERVER'] = 'smtp.example.com'
 app.config['MAIL_PORT'] = 587
@@ -69,8 +63,6 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_DEFAULT_SENDER'] = 'your_email@example.com'
 
-# Initialize Flask-Mail
-mail = Mail(app)
 
 # Flask app configurations
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
@@ -83,7 +75,6 @@ app.config['CERT_PATH'] = os.environ.get('CERT_PATH')
 app.config['KEY_PATH'] = os.environ.get('KEY_PATH')
 app.logger.setLevel(logging.INFO)  # or logging.DEBUG
 
-
 oauth = OAuth(app)
 CORS(app, resources={r"/*": {
     "origins": "https://ui.dev.io:3000",
@@ -91,14 +82,13 @@ CORS(app, resources={r"/*": {
     "allow_headers": ["Content-Type", "Authorization"]
 }})
 
-
 limiter = Limiter(app)
 # If you're using multiple instances or servers, make sure that each one of them has access to this Redis server.
 
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-cert_path = os.environ.get('CERT_PATH')
-key_path = os.environ.get('KEY_PATH')
+#cert_path = os.environ.get('CERT_PATH')
+#key_path = os.environ.get('KEY_PATH')
 
 
 bcrypt = Bcrypt(app)
@@ -683,10 +673,33 @@ def fetch_optimizers():
         return jsonify({'error': 'JSON file not found'}), 404
 
 
-
-
 VALID_MODEL_TYPES = ["random_forest", "linear_regression"]  # Add all valid model types here
 import logging
+
+@socketio.on('train_model')
+def handle_train_model_event(data):
+    symbol = data.get('symbol')
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
+    model = data.get('model')
+
+    # Log the event and data
+    logging.info(f'Received train_model event with data: {data}')
+
+    try:
+        # Trigger the Celery task asynchronously
+        task = train_model_task.delay(symbol, start_date, end_date, model)
+
+        # Emit a message to the client
+        emit('training_started', {'message': 'Training has started'})
+
+        # Log the task details
+        logging.info(f'Training task started: Task ID={task.id}, Symbol={symbol}, Model={model}')
+
+    except Exception as e:
+        # Handle exceptions gracefully and log errors
+        logging.error(f'Error starting training task: {str(e)}')
+        emit('training_error', {'error_message': str(e)})
 
 @app.route('/startTraining', methods=['POST'])
 @limiter.limit("5 per minute")
@@ -727,6 +740,11 @@ def start_training():
         # Send error message to client
         return jsonify({'error': str(e)}), 500
 
+import uuid
+
+def generate_unique_id():
+    # Generate a unique identifier using UUID
+    return str(uuid.uuid4())
 
 
 
@@ -740,24 +758,9 @@ def disconnect():
     print("Client disconnected")
 
 
- # if __name__ == '__main__':
-    # Use Gevent to run your Flask-SocketIO application with SSL/TLS
-     # socketio.run(app, debug=True, host='0.0.0.0', port=5000, keyfile='./api.dev.io.key', certfile='./api.dev.io.crt')
 if __name__ == '__main__':
-   
-
-    from pathlib import Path
-
-    # Get the absolute paths to the certificate and key files
-    cert_path = os.path.abspath('api.dev.io.crt')
-    key_path = os.path.abspath('api.dev.io.key')
-
-    # Check if the certificate and key files exist
-    if not (os.path.exists(cert_path) and os.path.exists(key_path)):
-        raise FileNotFoundError("Certificate or key file not found.")
-
     # Use the absolute paths in the ssl_context parameter
-    socketio.init_app(app)
+     socketio.run(app, debug=True, host='0.0.0.0', port=5000, keyfile='./api.dev.io.key', certfile='./api.dev.io.crt')
 
 
 
