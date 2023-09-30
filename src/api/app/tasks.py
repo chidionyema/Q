@@ -22,6 +22,16 @@ def send_password_reset_email(email, reset_link):
         msg.body = f'Click the following link to reset your password: {reset_link}'
         mail.send(msg)
 
+from flask import current_app
+from flask_socketio import SocketIO
+
+# Initialize socketio
+socketio = SocketIO()
+
+def background_emit(event_name, data):
+    with app.app_context():
+        socketio.emit(event_name, data, namespace='/training')
+
 @celery.task(bind=True)
 def train_model_task(self, symbol, start_date, end_date, model):
     with create_app().app_context():
@@ -32,10 +42,6 @@ def train_model_task(self, symbol, start_date, end_date, model):
 
             start_date = convert_to_date_only(start_date)
             end_date = convert_to_date_only(end_date)
-
-            # The symbol validation can be added back in if you have such a function
-            # if not symbol_is_valid(symbol):
-            #     raise ValueError("Invalid symbol")
 
             # Training code
             rf_builder = ModelBuilder(RandomForest, optimizer=GridSearchOptimizer(param_grid={"n_estimators": [10, 50, 100]}))
@@ -56,12 +62,16 @@ def train_model_task(self, symbol, start_date, end_date, model):
             # Update the task progress to 100% upon completion
             self.update_state(state='PROGRESS', meta={'progress': 100})
 
-            # Emit the results through sockets to the frontend
-            socketio.emit('training_complete', {'progress': 100, 'message': 'Training completed!', 'predictions': mae_values}, namespace='/training')
+            # Emit the results through sockets to the frontend in a background task
+            socketio.start_background_task(background_emit, 'training_complete', {'progress': 100, 'message': 'Training completed!', 'predictions': mae_values})
 
             return mae_values
 
         except Exception as e:
             db.session.rollback()
-            socketio.emit('training_error', {'error': str(e)}, namespace='/training')
+            
+            # Emit error in a background task
+            socketio.start_background_task(background_emit, 'training_error', {'error': str(e)})
+            
             raise e
+
