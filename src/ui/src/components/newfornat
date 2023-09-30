@@ -1,0 +1,117 @@
+{
+    "id": 5,
+    "code": "SVM",
+    "name": "Support Vector Machine (SVM)",
+    "requirements": {
+        "dataType": ["tabular", "image", "text"],
+        "datasetSize": ["small", "medium"],
+        "sequential": false
+    },
+    "preferredOptimizers": ["SMO", "SGD"],
+    "incompatibilities": {
+        "optimizers": [],
+        "ensembles": ["Random Forests"]
+    },
+    "commonApplications": ["classification", "regression"],
+    "trainingTime": "medium",
+    "memoryUsage": "medium",
+    "scalability": false,
+    "interpretability": "medium",
+    "sensitivity": "medium",
+    "parallelization": false,
+    "onlineLearning": false,
+    "nonStationarityHandling": false,
+    "regularization": true,
+    "dataShape": "flat",
+    "outputType": "label",
+    "commonPreprocessingSteps": ["standardization"]
+}
+
+{
+    "id": 7,
+    "code": "PCA",
+    "name": "Principal Component Analysis (PCA)",
+    "requirements": {
+        "dataType": ["tabular", "image"],
+        "datasetSize": ["small", "medium", "large"],
+        "sequential": false
+    },
+    "preferredOptimizers": [],
+    "incompatibilities": {
+        "optimizers": [],
+        "ensembles": []
+    },
+    "commonApplications": ["dimensionality reduction"],
+    "trainingTime": "short",
+    "memoryUsage": "low",
+    "scalability": true,
+    "interpretability": "high",
+    "sensitivity": "low",
+    "parallelization": false,
+    "onlineLearning": false,
+    "nonStationarityHandling": false,
+    "regularization": false,
+    "dataShape": "flat",
+    "outputType": "transformed data",
+    "commonPreprocessingSteps": ["standardization"]
+}
+
+{
+    "code": "SMO",
+    "name": "Sequential Minimal Optimization",
+    "convergenceSpeed": "medium",
+    "stochastic": false,
+    "memoryRequirement": "low",
+    "preferredModels": ["SVM"],
+    "incompatibilities": ["Neural Networks"],
+    "parallelizable": false
+}
+
+
+
+Certainly, if we're looking to develop a more intelligent algorithm that can assess the feasibility of different combinations of models, optimizers, and ensemblers, we would need to first define attributes for each of these components. These attributes should capture the characteristics, requirements, and potential incompatibilities of each component. 
+
+Let's detail some possible attributes for each of the components:
+
+### 1. Models
+
+We already have a comprehensive list for models in `MODEL_CLASSES_EXTENDED`. We can extend it with:
+
+- **dataShape**: Indicates the shape of data the model expects. For example, CNN might expect 2D or 3D tensors, while RNN expects sequences.
+- **outputType**: Specifies what kind of output the model gives – continuous values, discrete labels, probabilities, etc.
+- **commonPreprocessingSteps**: Lists common preprocessing tasks that are typically necessary for this model, such as tokenization for NLP models.
+
+### 2. Optimizers
+
+- **convergenceSpeed**: How quickly does the optimizer typically converge? E.g., "fast", "medium", "slow".
+- **stochastic**: A boolean indicating if the optimizer is stochastic, like SGD or Adam.
+- **memoryRequirement**: How memory-intensive is the optimizer? E.g., "low", "medium", "high".
+- **preferredModels**: Models that this optimizer typically performs well with.
+- **incompatibilities**: Models or model types that this optimizer isn't typically used with.
+- **parallelizable**: Can the optimizer be parallelized across multiple devices or cores?
+
+### 3. Ensemblers
+
+- **baseModelType**: Specifies what kind of base models this ensembler typically uses. For instance, Random Forests use decision trees.
+- **inputModelDiversity**: Does this ensembler require diverse base models (like Stacking) or similar models (like Bagging)?
+- **trainingOverlap**: Can the base models be trained simultaneously or sequentially?
+- **preferredModels**: Lists models that this ensembler works best with.
+- **outputType**: Similar to models, specifies what kind of output the ensemble method gives.
+- **parallelizable**: Can the ensemble method be parallelized during training/prediction?
+- **modelLimit**: Some ensemble methods might have a limit on the number of base models.
+
+With these attributes, our algorithm can analyze combinations based on compatibility of attributes. For instance, an optimizer with a "slow" convergenceSpeed might not be suitable for a model with a "long" trainingTime.
+
+### Algorithm Outline for Feasibility Analysis
+
+1. **Input**: Select a model, optimizer, and ensembler.
+2. Check the `requirements` of the model:
+    - If the dataset type doesn't match model requirements, mark as infeasible.
+3. Check the `preferredOptimizers` and `incompatibilities` for the selected model:
+    - If the optimizer is incompatible, mark as infeasible.
+4. Check the `preferredModels` for the optimizer and ensembler:
+    - If the model isn't preferred, mark as possibly sub-optimal but feasible.
+5. Repeat similar checks for the ensembler's requirements and incompatibilities.
+6. Return a feasibility score (e.g., feasible, infeasible, sub-optimal) and reasons.
+
+Remember, while this approach can filter out clearly incompatible combinations, the best assessment of a combination's effectiveness is still empirical testing, as the nuances of the specific dataset, task, and even hardware can impact the results. This algorithm aims to simplify the selection process but can't replace actual experimentation.

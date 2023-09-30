@@ -1,0 +1,23 @@
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+  button {
+    background-color: #4c5156;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+/* styles/global.css */
+body {
+    background-color: rgb(245 247 248/var(--tw-bg-opacity));
+    /* Add other global styles here */
+  }
+
+  h1 {
+    font-size: 40px;
+    }
+  
