@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { setToken, getToken, clearToken, setCookie, clearCookie } from '../utility/sessionManager';
+import { setToken, clearToken, setCookie, clearCookie } from '../utility/sessionManager';
 import { useAuth } from '../contexts/authContext';
 
 const Callback = () => {

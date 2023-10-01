@@ -58,15 +58,16 @@ export function getCookie(name: string): string | null {
   return null;
 }
 
-// Define a function to set a cookie with a specified expiration (in days)
-export function setCookie(name: string, value: string, days: number = 7): void {
-  if (typeof window !== 'undefined') {
+export function setCookie(name: string, value: string, hours : number = 1, secure = true) {
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
     const date = new Date();
-    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+    date.setTime(date.getTime() + hours * 60 * 60 * 1000); // Set expiration time to one hour
     const expires = `expires=${date.toUTCString()}`;
-    document.cookie = `${name}=${value};${expires};path=/`;
+    const secureAttribute = secure ? 'Secure;' : ''; // Add the 'Secure' attribute if secure is true
+    document.cookie = `${name}=${value};${expires};path=/;${secureAttribute}`;
   }
 }
+
 
 // Define a function to clear a cookie by name
 export function clearCookie(name: string): void {

@@ -9,6 +9,7 @@ import '../../public/styles.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import  AuthProvider  from '../contexts/authProvider'; // Import the AuthContext
+import '../../fontawesome'; // Import the FontAwesome configuration
 
 const theme = createTheme({
   typography: {

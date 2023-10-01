@@ -1,13 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useRouter } from 'next/router';
 import { getToken, clearToken, clearCookie } from '../utility/sessionManager';
 import { fetchUserAuthenticationStatus } from '../utility/authHelper';
-import { APIProxy } from '../utility/apiProxy';
 import { useApiCall } from '../hooks/useApiCall';
+import { APIProxy } from '../utility/apiProxy';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { useMediaQuery, Theme } from '@mui/material';
+import { Divider } from '@mui/material';
+import customTheme from '../../customTheme'; // Adjust the path as needed
+
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  Drawer,
+  List,
+  ListItem,
+  IconButton,
+  Typography,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import { Box } from '@mui/system';
 
 const apiProxyInstance = new APIProxy();
 
@@ -17,8 +35,58 @@ const NavBar: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loggedInUsername, setLoggedInUsername] = useState<string | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const matchesSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   const logoutApi = useApiCall(apiProxyInstance.fetchEndpoint);
+  const navItems = [
+    { path: '/', label: 'Home' },
+    { path: '/train', label: 'Explore Models' },
+    { path: '/about', label: 'About Us' },
+    { path: '/services', label: 'Services' },
+    { path: '/contact', label: 'Contact' },
+    { path: '/blog', label: 'Blog' },
+    { path: '/portfolio', label: 'Portfolio' },
+    { path: '/team', label: 'Our Team' },
+    // ... [You can add even more items as needed]
+  ];
+
+  const lightTheme = createTheme({
+    palette: {
+      type: 'light',
+      primary: {
+        main: '#ff5722',
+      },
+      secondary: {
+        main: '#2196f3',
+      },
+      background: {
+        default: '#f5f5f5',
+        paper: '#ffffff',
+      },
+    },
+    typography: {
+      fontFamily: 'Roboto, sans-serif',
+    },
+  });
+
+  const darkTheme = createTheme({
+    palette: {
+      type: 'dark',
+      primary: {
+        main: '#ff5722',
+      },
+      secondary: {
+        main: '#2196f3',
+      },
+      background: {
+        default: '#303030',
+        paper: '#424242',
+      },
+    },
+    typography: {
+      fontFamily: 'Roboto, sans-serif',
+    },
+  });
 
   const handleLogout = async () => {
     const sessionToken = getToken();
@@ -66,171 +134,80 @@ const NavBar: React.FC = () => {
   }, [getToken()]);
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <nav className={`navBar ${darkMode ? 'dark-mode' : 'light-mode'}`}>
-        <div className="container">
-          <Link href="/">
-            <span className="logo">Q-Trader</span>
-          </Link>
-          <ul className={`navList ${mobileNavOpen ? 'open' : ''}`}>
-            <li className="navItem">
-              <Link href="/">
-                <span>Home</span>
-              </Link>
-            </li>
-            <li className="navItem">
-              <Link href="/train">
-                <span>Explore ML Models</span>
-              </Link>
-            </li>
-            <li className="navItem">
-              <Link href="/simulation">
-                <span>Backtest and Simulate</span>
-              </Link>
-            </li>
-            <li className="navItem">
-              <Link href="/results">
-                <span>Evaluate Performance</span>
-              </Link>
-            </li>
-            <li className="navItem">
-              <Link href="/leaderboardpage">
-                <span>Leaderboard</span>
-              </Link>
-            </li>
-            <li className="navItem">
-              <Link href="/FAQ">
-                <span>FAQ</span>
-              </Link>
-            </li>
-            <li className="navItem">
-              <Link href="/contact">
-                <span>Contact</span>
-              </Link>
-            </li>
-          </ul>
-          <button onClick={toggleTheme} className="themeButton">
-            {darkMode ? 'Light Mode' : 'Dark Mode'}
-          </button>
-          <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="mobileNavToggle">
-            {mobileNavOpen ? 'Close' : 'Menu'}
-          </button>
-          {isAuthenticated ? (
-            <div className="userLoggedIn">
-              <span>Welcome, {loggedInUsername}!</span>
-              <button onClick={handleLogout}>Logout</button>
-            </div>
-          ) : (
-            <div className="userLoggedOut">
-              <Link href="/LoginPage">
-                <span>Login</span>
-              </Link>
-            </div>
-          )}
-        </div>
-      </nav>
-
-      <style jsx>{`
-        .navBar {
-          background-color: ${darkMode ? '#2C2C2C' : '#f4f4f4'};
-          color: ${darkMode ? '#FFF' : '#333'};
-          padding: 15px 0;
-          transition: background-color 0.3s;
-        }
-
-        .container {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .logo {
-          font-family: 'Poppins', sans-serif;
-          font-size: 28px;
-          font-weight: bold;
-          cursor: pointer;
-          transition: color 0.3s;
-        }
-
-        .navList {
-          display: flex;
-          gap: 25px;
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-
-        .navItem span {
-          cursor: pointer;
-          font-family: 'Poppins', sans-serif;
-          padding: 8px 16px;
-          border-radius: 5px;
-          transition: background-color 0.3s, color 0.3s;
-        }
-
-        .navItem span:hover {
-          background-color: rgba(0, 0, 0, 0.1);
-        }
-
-        .themeButton,
-        .mobileNavToggle,
-        button {
-          padding: 10px 20px;
-          border: none;
-          border-radius: 5px;
-          font-family: 'Poppins', sans-serif;
-          transition: background-color 0.3s, color 0.3s;
-          cursor: pointer;
-        }
-
-        .themeButton:hover,
-        .mobileNavToggle:hover,
-        button:hover {
-          background-color: rgba(0, 0, 0, 0.1);
-        }
-
-        .userLoggedIn,
-        .userLoggedOut {
-          display: flex;
-          align-items: center;
-        }
-
-        .userLoggedIn span {
-          margin-right: 10px;
-        }
-
-        .mobileNavToggle {
-          display: none;
-          background-color: transparent;
-          border: 1px solid currentColor;
-        }
-
-        @media (max-width: 768px) {
-          .mobileNavToggle {
-            display: block;
-          }
-
-          .navList {
-            display: ${mobileNavOpen ? 'block' : 'none'};
-            position: absolute;
-            top: 60px;
-            left: 0;
-            background-color: ${darkMode ? '#2C2C2C' : '#f4f4f4'};
-            width: 100%;
-            flex-direction: column;
-            padding: 10px 0;
-          }
-
-          .navItem {
-            text-align: center;
-            margin: 10px 0;
-          }
-        }
-      `}</style>
-      <ToastContainer />
-    </motion.div>
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <AppBar position="static" color={darkMode ? 'default' : 'primary'}>
+          <Toolbar
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: matchesSm ? '0 1rem' : '0 2rem',
+            }}
+          >
+            <Link href="/" passHref>
+              <Typography
+                variant="h6"
+                component="div"
+                sx={{
+                  cursor: 'pointer',
+                  marginLeft: matchesSm ? '68rem' : '68rem',
+                  marginRight: '0.5rem',
+                }}
+              >
+                Q-Trader
+              </Typography>
+            </Link>
+            {matchesSm ? (
+              <IconButton
+                color="inherit"
+                sx={{ marginRight: '1rem' }}
+                onClick={() => setMobileNavOpen(true)}
+              >
+                <MenuIcon />
+              </IconButton>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  flexGrow: 1,
+                  justifyContent: 'left',
+                  marginLeft: '0.2rem',
+                }}
+              >
+                {navItems.map((item, index) => (
+                  <React.Fragment key={item.path}>
+                    {index > 0 && (
+                      <Divider orientation="vertical" flexItem sx={{ height: 24, mx: 1, bgcolor: 'text.primary' }} />
+                    )}
+                    <Link href={item.path} passHref>
+                      <Button color="inherit">{item.label}</Button>
+                    </Link>
+                  </React.Fragment>
+                ))}
+                <Divider orientation="vertical" flexItem sx={{ height: 24, mx: 1, bgcolor: 'text.primary' }} />
+                <Button color="inherit" onClick={toggleTheme}>
+                  {darkMode ? 'Light Mode' : 'Dark Mode'}
+                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <Typography sx={{ ml: 2 }}>Welcome, {loggedInUsername}!</Typography>
+                    <Button color="inherit" onClick={handleLogout}>
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <Link href="/LoginPage" passHref>
+                    <Button color="inherit">Login</Button>
+                  </Link>
+                )}
+              </Box>
+            )}
+          </Toolbar>
+        </AppBar>
+      </motion.div>
+    </ThemeProvider>
   );
 };
 

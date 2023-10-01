@@ -16,7 +16,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif!important', transition: 'all 0.3s ease' }}>
             <Box component="header" sx={{ textAlign: 'center', p: 2, fontSize: '2rem', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', letterSpacing: '2px' }}>
-                <Typography variant="h5">Your Logo</Typography>
+                <Typography variant="h5">Q</Typography>
             </Box>
             
             <Container maxWidth="lg" component="main" sx={{ my: 3, position: 'relative', display: 'flex', gap: 2 }}>
