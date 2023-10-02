@@ -140,8 +140,10 @@ const NavBar: React.FC = () => {
  
         <Toolbar
   sx={{
+    position: 'relative', // Set the Toolbar to have a relative position
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: matchesSm ? '0 1rem' : '0 2rem',
   }}
 >
@@ -149,10 +151,12 @@ const NavBar: React.FC = () => {
   <Box
     sx={{
       display: 'flex',
+      
       alignItems: 'center',
-      gap: 0.5,
+      gap: 2,
+      marginLeft: '1rem',
       justifyContent: 'center',
-      flexGrow: 2,  // Makes sure this container grows in between the left and right content
+      flexGrow: 0.5,  // Makes sure this container grows in between the left and right content
       textAlign: 'center'
     }}
   >
@@ -181,6 +185,7 @@ const NavBar: React.FC = () => {
       display: 'flex',
       alignItems: 'center',
       gap: 0.5,
+      marginLeft: '0.5rem',
       
       flexGrow: 1  // This creates equal space on the right
     }}
