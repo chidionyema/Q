@@ -45,8 +45,6 @@ const NavBar: React.FC = () => {
     { path: '/services', label: 'Services' },
     { path: '/contact', label: 'Contact' },
     { path: '/blog', label: 'Blog' },
-    { path: '/portfolio', label: 'Portfolio' },
-    { path: '/team', label: 'Our Team' },
     // ... [You can add even more items as needed]
   ];
 
@@ -148,15 +146,16 @@ const NavBar: React.FC = () => {
   }}
 >
   <Box sx={{ flexGrow: 1 }} />  {/* This creates equal space on the left */}
+  
   <Box
     sx={{
       display: 'flex',
       
       alignItems: 'center',
-      gap: 2,
-      marginLeft: '1rem',
+      gap: 1,
+      left: '2rem',
+      marginLeft: '2rem',
       justifyContent: 'center',
-      flexGrow: 0.5,  // Makes sure this container grows in between the left and right content
       textAlign: 'center'
     }}
   >
@@ -169,6 +168,7 @@ const NavBar: React.FC = () => {
         Q-Trader
       </Typography>
     </Link>
+    <Divider orientation="vertical" flexItem sx={{ height: 24, mx: 1, bgcolor: 'text.primary' }} />
     {navItems.map((item, index) => (
       <React.Fragment key={item.path}>
         {index > 0 && (
@@ -180,6 +180,11 @@ const NavBar: React.FC = () => {
       </React.Fragment>
     ))}
   </Box>
+  {/* Adding the divider here */}
+  <Divider orientation="vertical" flexItem sx={{ height: 24, mt: 1.7, bgcolor: 'text.primary' }} />
+
+
+
   <Box
     sx={{
       display: 'flex',
@@ -193,12 +198,12 @@ const NavBar: React.FC = () => {
     <Button color="inherit" onClick={toggleTheme}>
       {darkMode ? 'Light Mode' : 'Dark Mode'}
     </Button>
+    <Divider orientation="vertical" flexItem sx={{ height: 24, mx: 1, bgcolor: 'text.primary' }} />
     {isAuthenticated ? (
       <>
-        <Typography sx={{ ml: 2 }}>Welcome, {loggedInUsername}!</Typography>
-        <Button color="inherit" onClick={handleLogout}>
-          Logout
-        </Button>
+      <Typography sx={{ marginLeft: 2, marginRight: 1 }}>Welcome, {loggedInUsername}!</Typography>
+      <Button color="inherit" onClick={handleLogout} sx={{ marginLeft: 1 }}>Logout</Button>
+
       </>
     ) : (
       <Link href="/LoginPage" passHref>
