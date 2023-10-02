@@ -8,8 +8,18 @@ import Box from '@mui/material/Box';
 import SearchIcon from '@mui/icons-material/Search';
 import SecurityIcon from '@mui/icons-material/Security';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { styled } from '@mui/system';
+
+// Define HighlightedNumber styled component
+const HighlightedNumber = styled('span')({
+    fontWeight: 'bold',
+    color: '#1976d2',
+    fontSize: '1.1rem',
+});
 
 const HomePage: React.FC = () => {
+
+    
   return (
     <Box
       sx={{
@@ -36,7 +46,7 @@ const HomePage: React.FC = () => {
         </Typography>
 
         <Typography variant="body1" gutterBottom>
-          With over 50 models, 30 optimizers, and an array of ensemble strategies, Q-Trader empowers you to create, test, and refine trading strategies with ease. Backtest market-beating approaches and gain valuable insights for confident trading.
+        With over <HighlightedNumber>50</HighlightedNumber> models, <HighlightedNumber>30</HighlightedNumber> optimizers, and an array of ensemble strategies, Q-Trader empowers you to create, test, and refine trading strategies with ease. Backtest market-beating approaches and gain valuable insights for confident trading.
         </Typography>
 
         <Typography variant="body1" gutterBottom>

@@ -137,74 +137,92 @@ const NavBar: React.FC = () => {
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
         <AppBar position="static" color={darkMode ? 'default' : 'primary'}>
-          <Toolbar
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: matchesSm ? '0 1rem' : '0 2rem',
-            }}
-          >
-            <Link href="/" passHref>
-              <Typography
-                variant="h6"
-                component="div"
-                sx={{
-                  cursor: 'pointer',
-                  marginLeft: matchesSm ? '68rem' : '68rem',
-                  marginRight: '0.5rem',
-                }}
-              >
-                Q-Trader
-              </Typography>
-            </Link>
-            {matchesSm ? (
-              <IconButton
-                color="inherit"
-                sx={{ marginRight: '1rem' }}
-                onClick={() => setMobileNavOpen(true)}
-              >
-                <MenuIcon />
-              </IconButton>
-            ) : (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                  flexGrow: 1,
-                  justifyContent: 'left',
-                  marginLeft: '0.2rem',
-                }}
-              >
-                {navItems.map((item, index) => (
-                  <React.Fragment key={item.path}>
-                    {index > 0 && (
-                      <Divider orientation="vertical" flexItem sx={{ height: 24, mx: 1, bgcolor: 'text.primary' }} />
-                    )}
-                    <Link href={item.path} passHref>
-                      <Button color="inherit">{item.label}</Button>
-                    </Link>
-                  </React.Fragment>
-                ))}
-                <Divider orientation="vertical" flexItem sx={{ height: 24, mx: 1, bgcolor: 'text.primary' }} />
-                <Button color="inherit" onClick={toggleTheme}>
-                  {darkMode ? 'Light Mode' : 'Dark Mode'}
-                </Button>
-                {isAuthenticated ? (
-                  <>
-                    <Typography sx={{ ml: 2 }}>Welcome, {loggedInUsername}!</Typography>
-                    <Button color="inherit" onClick={handleLogout}>
-                      Logout
-                    </Button>
-                  </>
-                ) : (
-                  <Link href="/LoginPage" passHref>
-                    <Button color="inherit">Login</Button>
+ 
+        <Toolbar
+  sx={{
+    display: 'flex',
+    alignItems: 'center',
+    padding: matchesSm ? '0 1rem' : '0 2rem',
+  }}
+>
+  <Box sx={{ flexGrow: 1 }} />  {/* This creates equal space on the left */}
+  <Box
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 0.5,
+      justifyContent: 'center',
+      flexGrow: 2,  // Makes sure this container grows in between the left and right content
+      textAlign: 'center'
+    }}
+  >
+    <Link href="/" passHref>
+      <Typography
+        variant="h6"
+        component="div"
+        sx={{ cursor: 'pointer' }}
+      >
+        Q-Trader
+      </Typography>
+    </Link>
+    {navItems.map((item, index) => (
+      <React.Fragment key={item.path}>
+        {index > 0 && (
+          <Divider orientation="vertical" flexItem sx={{ height: 24, mx: 1, bgcolor: 'text.primary' }} />
+        )}
+        <Link href={item.path} passHref>
+          <Button color="inherit">{item.label}</Button>
+        </Link>
+      </React.Fragment>
+    ))}
+  </Box>
+  <Box
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 0.5,
+      
+      flexGrow: 1  // This creates equal space on the right
+    }}
+  >
+    <Button color="inherit" onClick={toggleTheme}>
+      {darkMode ? 'Light Mode' : 'Dark Mode'}
+    </Button>
+    {isAuthenticated ? (
+      <>
+        <Typography sx={{ ml: 2 }}>Welcome, {loggedInUsername}!</Typography>
+        <Button color="inherit" onClick={handleLogout}>
+          Logout
+        </Button>
+      </>
+    ) : (
+      <Link href="/LoginPage" passHref>
+        <Button color="inherit">Login</Button>
+      </Link>
+    )}
+  </Box>
+</Toolbar>
+
+
+          {/* Mobile Navigation Drawer */}
+          <Drawer anchor="right" open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
+            <Box
+              sx={{ width: 250 }}
+              role="presentation"
+              onClick={() => setMobileNavOpen(false)}
+              onKeyDown={() => setMobileNavOpen(false)}
+            >
+              <List>
+                {navItems.map((item) => (
+                  <Link href={item.path} passHref key={item.path}>
+                    <ListItem button>
+                      <Typography variant="body1">{item.label}</Typography>
+                    </ListItem>
                   </Link>
-                )}
-              </Box>
-            )}
-          </Toolbar>
+                ))}
+              </List>
+            </Box>
+          </Drawer>
         </AppBar>
       </motion.div>
     </ThemeProvider>

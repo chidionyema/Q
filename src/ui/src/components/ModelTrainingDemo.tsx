@@ -42,6 +42,38 @@ const TrainingDemo = () => {
     const [predictionResults, setPredictionResults] = useState([]);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
+    const clearResults = () => {
+       // setTrainingStarted(false);
+        setMaeVal(null);
+        setMaeTest(null);
+        setPredictionResults([]);
+    };
+    
+    const HighlightedNumber = styled('span')({
+        fontWeight: 'bold',
+        color: '#1976d2',  // blue color matching MUI primary theme (adjust if needed)
+        fontSize: '1.1rem',
+    });
+    
+    const QTraderIntroduction: React.FC = () => {
+        return (
+            <Box mt={4} mb={4}>
+                <Typography variant="h6">
+                    Welcome to Q-Trader – your one-stop solution for effortless stock trading. Whether you're a beginner or a seasoned pro, we provide the tools and technology to simplify and enhance your trading experience.
+                </Typography>
+    
+                <Typography variant="body1" mt={2}>
+                    With over <HighlightedNumber>50</HighlightedNumber> models, <HighlightedNumber>30</HighlightedNumber> optimizers, and an array of ensemble strategies, Q-Trader empowers you to create, test, and refine trading strategies with ease. Backtest market-beating approaches and gain valuable insights for confident trading.
+                </Typography>
+    
+                <Typography variant="body1" mt={2}>
+                    Join us today and leverage AI and real-time market data to make informed decisions. Start your journey to financial success with Q-Trader.
+                </Typography>
+            </Box>
+        );
+    };
+    
+
     const validateInputs = () => {
         if (!symbol) {
             return "Symbol is required!";
@@ -75,14 +107,16 @@ const TrainingDemo = () => {
     const socketManager = SocketManager.getInstance();
 
     useEffect(() => {
-
+        // Clearing results whenever dependencies change
+        clearResults();
+    
         const checkAuthenticationStatus = async () => {
             const userIsAuthenticated = await fetchUserAuthenticationStatus();
             setIsAuthenticated(userIsAuthenticated);
         };
         checkAuthenticationStatus();
         socketManager.connect();
-
+    
         socketManager.on('connect', () => console.log('Connected to server'));
         socketManager.on('training_complete', (data) => {
             console.log('Training complete:', data);
@@ -102,12 +136,12 @@ const TrainingDemo = () => {
             console.log('Training progress:', data);
             setProgress(data.percentage);
         });
-
+    
         return () => {
             socketManager.disconnect();
         };
-    }, []);
-
+    }, [symbol, startDate, endDate, selectedCategory, selectedModel]); // Dependencies are added here
+    
     const startTraining = () => {
         setIsTraining(true);
         setIsLoading(true);
@@ -118,7 +152,13 @@ const TrainingDemo = () => {
             model: selectedModel
         });
     };
-
+    
+    const highlightStyle = {
+        fontWeight: 'bold',
+        color: 'blue',  // Change color or any style as needed
+        fontSize: '1.1rem',
+    };
+    
     const scrollToPredictions = () => {
         const predictionsElement = document.getElementById('predictions');
         if (predictionsElement) {
@@ -187,13 +227,15 @@ const TrainingDemo = () => {
                         />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                        <StyledDatePicker
-                            selected={endDate}
-                            onChange={(date) => setEndDate(date as Date)}
-                            dateFormat="dd/MM/yyyy"
-                            placeholderText="End Date"
-                            minDate={startDate}
-                        />
+                    <StyledDatePicker
+                        selected={endDate}
+                        onChange={(date) => setEndDate(date as Date)}
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="End Date"
+                        minDate={startDate}
+                        maxDate={new Date()} // This ensures the maximum date that can be picked is today.
+                    />
+
                     </Grid>
                     <Grid item xs={12}>
                         {isTraining ? (
@@ -215,71 +257,72 @@ const TrainingDemo = () => {
                 }
                 {serverFeedback && <Box mt={2}><Alert severity="info">{serverFeedback}</Alert></Box>}
             </Paper>
-            <Paper 
-    elevation={3} 
-    style={{ 
-        marginTop: '2rem', 
-        padding: '1rem', 
-        borderRadius: '10px', 
-        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)' 
-    }} 
-    id="predictions"
+            {predictionResults.length > 0 && (
+  <Paper 
+  elevation={3} 
+  style={{ 
+      marginTop: '2rem', 
+      padding: '1rem', 
+      borderRadius: '10px', 
+      boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)' 
+  }} 
+  id="predictions"
 >
-    <Typography variant="h5" gutterBottom align="center">
-        Prediction Results
-    </Typography>
-    <Typography variant="body1" gutterBottom align="center">
-        These are the results of your model's predictions, assessed by Mean Absolute Error (MAE).
-        <br />
-        MAE measures how close your predictions are to actual values. Lower values indicate better accuracy.
-    </Typography>
-    <Box mt={2}>
-        <TableContainer component={Paper}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>MAE Val</TableCell>
-                        <TableCell>MAE Test</TableCell>
+  <Typography variant="h5" gutterBottom align="center" color="secondary">
+      Prediction Results
+  </Typography>
+  <Typography variant="body1" gutterBottom align="center">
+      These are the results of your model's predictions, assessed by Mean Absolute Error (MAE). A lower MAE value indicates better accuracy.
+  </Typography>
+  <Box mt={2}>
+      <TableContainer component={Paper}>
+          <Table>
+              <TableHead>
+                  <TableRow>
+                      <TableCell>MAE Val</TableCell>
+                      <TableCell>MAE Test</TableCell>
+                  </TableRow>
+              </TableHead>
+              <TableBody>
+                {predictionResults.map((result, index) => (
+                    <TableRow key={index}>
+                        <TableCell style={highlightStyle}>{result.mae_val}</TableCell>
+                        <TableCell style={highlightStyle}>{result.mae_test}</TableCell>
                     </TableRow>
-                </TableHead>
-                <TableBody>
-                    {predictionResults.map((result, index) => (
-                        <TableRow key={index}>
-                            <TableCell>{result.mae_val}</TableCell>
-                            <TableCell>{result.mae_test}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
-    </Box>
+                ))}
+            </TableBody>
 
-    <Typography variant="body1" style={{ marginTop: '1rem' }}>
-        These values reflect how well your model is performing:
-    </Typography>
-    <ul>
-        <li>
-            <Typography variant="body1">
-                <strong>MAE Val (Validation):</strong> Lower values indicate better accuracy. This measures prediction accuracy on data seen during training.
-            </Typography>
-        </li>
-        <li>
-            <Typography variant="body1">
-                <strong>MAE Test:</strong> Lower values are better. This measures accuracy on unseen data. Aim for a low score!
-            </Typography>
-        </li>
-    </ul>
+          </Table>
+      </TableContainer>
+  </Box>
 
-    {!isAuthenticated ? (
-        <Typography variant="body1" style={{ marginTop: '1rem' }}>
-            To unlock advanced features and dive deeper into the world of data modeling, please <Link href="/login">log in</Link> or <Link href="/signup">create an account</Link>.
-        </Typography>
-    ) : (
-        <Typography variant="body1" style={{ marginTop: '1rem' }}>
-            Unlock advanced features and dive deeper into the world of data modeling.
-        </Typography>
-    )}
+  <Typography variant="body1" style={{ marginTop: '1rem' }}>
+      These values reflect the quality of your predictions:
+  </Typography>
+  <ul>
+      <li>
+          <Typography variant="body1">
+              <strong>MAE Val (Validation):</strong> Refers to the prediction accuracy on the training data. A lower value is better.
+          </Typography>
+      </li>
+      <li>
+          <Typography variant="body1">
+              <strong>MAE Test:</strong> Measures the model's accuracy on new, unseen data. Aim for a low score!
+          </Typography>
+      </li>
+  </ul>
+
+  {!isAuthenticated ? (
+      <Typography variant="body1" style={{ marginTop: '1rem', color: '#E91E63', fontWeight: 'bold' }}>
+          Unlock advanced features! <EnhancedLink href="/login">Log in</EnhancedLink> or <EnhancedLink href="/signup">Sign up</EnhancedLink> now.
+      </Typography>
+  ) : (
+      <Typography variant="body1" style={{ marginTop: '1rem' }}>
+          Dive deeper into the world of data modeling with our advanced features.
+      </Typography>
+  )}
 </Paper>
+)}
 
         </Container>
     );
