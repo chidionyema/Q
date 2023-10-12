@@ -344,3 +344,184 @@ class ARIMAModel(BaseModel):
 
     def train(self, X_train, y_train=None):
         self.algorithm_instance.fit(X_train, y_train)
+
+
+
+class ModelFactory:
+    models = {
+        "RandomForestRegressor": RandomForestRegressorModel,
+        "PrincipalComponentAnalysis": PrincipalComponentAnalysisModel,
+        "KMeans": KMeansModel,
+        "SupportVectorRegressor": SupportVectorRegressorModel,
+        "LinearRegression": LinearRegressionModel,
+        "KNeighborsRegressor": KNeighborsRegressorModel,
+        "DecisionTreeRegressor": DecisionTreeRegressorModel,
+        "AdaBoostRegressor": AdaBoostRegressorModel,
+        "GradientBoostingRegressor": GradientBoostingRegressorModel,
+        "RidgeRegression": RidgeRegressionModel,
+        "LassoRegression": LassoRegressionModel,
+        "ElasticNetRegression": ElasticNetRegressionModel,
+        "BayesianRidgeRegression": BayesianRidgeRegressionModel,
+        "ARDRegression": ARDRegressionModel,
+        "SGDRegressor": SGDRegressorModel,
+        "PassiveAggressiveRegressor": PassiveAggressiveRegressorModel,
+        "HuberRegressor": HuberRegressorModel,
+        "TheilSenRegressor": TheilSenRegressorModel,
+        "RANSACRegressor": RANSACRegressorModel,
+        "OrthogonalMatchingPursuit": OrthogonalMatchingPursuitModel,
+        "Lars": LarsModel,
+        "LassoLars": LassoLarsModel,
+        "TweedieRegressor": TweedieRegressorModel,
+        "PoissonRegressor": PoissonRegressorModel,
+        "GammaRegressor": GammaRegressorModel,
+        "LogisticRegressionClassifier": LogisticRegressionClassifierModel,
+        "GaussianNaiveBayes": GaussianNaiveBayesModel,
+        "RandomForestClassifier": RandomForestClassifierModel,
+        "SupportVectorClassifier": SupportVectorClassifierModel,
+        "DecisionTreeClassifier": DecisionTreeClassifierModel,
+        "AdaBoostClassifier": AdaBoostClassifierModel,
+        "GradientBoostingClassifier": GradientBoostingClassifierModel,
+        "KMeansClustering": KMeansClusteringModel,
+        "PCA": PCAModel,
+        "GaussianHMM": GaussianHMMModel,
+        "ARIMA": ARIMAModel,
+        # ... and so on for other models
+    }
+
+
+    class ModelFactory:
+    models = {
+        # Regression Models
+        "RandomForestRegressor": RandomForestRegressorModel,
+        "LinearRegression": LinearRegressionModel,
+        "RidgeRegression": RidgeRegressionModel,
+        "LassoRegression": LassoRegressionModel,
+        "ElasticNetRegression": ElasticNetRegressionModel,
+        "BayesianRidgeRegression": BayesianRidgeRegressionModel,
+        "ARDRegression": ARDRegressionModel,
+        "SGDRegressor": SGDRegressorModel,
+        "PassiveAggressiveRegressor": PassiveAggressiveRegressorModel,
+        "HuberRegressor": HuberRegressorModel,
+        "TheilSenRegressor": TheilSenRegressorModel,
+        "RANSACRegressor": RANSACRegressorModel,
+        "DecisionTreeRegressor": DecisionTreeRegressorModel,
+        "KNeighborsRegressor": KNeighborsRegressorModel,
+        "GradientBoostingRegressor": GradientBoostingRegressorModel,
+        "AdaBoostRegressor": AdaBoostRegressorModel,
+        "OrthogonalMatchingPursuit": OrthogonalMatchingPursuitModel,
+        "Lars": LarsModel,
+        "LassoLars": LassoLarsModel,
+        "TweedieRegressor": TweedieRegressorModel,
+        "PoissonRegressor": PoissonRegressorModel,
+        "GammaRegressor": GammaRegressorModel,
+        "SupportVectorRegressor": SupportVectorRegressorModel,
+
+        # Classification Models
+        "LogisticRegressionClassifier": LogisticRegressionClassifierModel,
+        "RandomForestClassifier": RandomForestClassifierModel,
+        "DecisionTreeClassifier": DecisionTreeClassifierModel,
+        "KNeighborsClassifier": KNeighborsClassifierModel,
+        "GradientBoostingClassifier": GradientBoostingClassifierModel,
+        "AdaBoostClassifier": AdaBoostClassifierModel,
+        "SupportVectorClassifier": SupportVectorClassifierModel,
+        "GaussianNaiveBayes": GaussianNaiveBayesModel,
+        "MultinomialNaiveBayes": MultinomialNaiveBayesModel,
+        "ComplementNaiveBayes": ComplementNaiveBayesModel,
+        "BernoulliNaiveBayes": BernoulliNaiveBayesModel,
+
+        # Clustering Models
+        "KMeansClustering": KMeansClusteringModel,
+        "DBSCAN": DBSCANModel,
+        "HierarchicalClustering": HierarchicalClusteringModel,
+        "MeanShift": MeanShiftModel,
+        "AgglomerativeClustering": AgglomerativeClusteringModel,
+        "OPTICS": OPTICSModel,
+        "SpectralClustering": SpectralClusteringModel,
+        "AffinityPropagation": AffinityPropagationModel,
+
+        # Dimensionality Reduction Models
+        "PrincipalComponentAnalysis": PrincipalComponentAnalysisModel,
+        "PCA": PCAModel,  # Redundant with the above; consider consolidating
+        "KernelPCA": KernelPCAModel,
+        "TSNE": TSNEModel,
+        "LDA": LDAModel,
+        "Isomap": IsomapModel,
+        "LocallyLinearEmbedding": LocallyLinearEmbeddingModel,
+        "MDS": MDSModel,
+
+        # Time Series Models
+        "ARIMA": ARIMAModel,
+        "SARIMA": SARIMAModel,
+        "Prophet": ProphetModel,
+        "HoltWinters": HoltWintersModel,
+        "ExponentialSmoothing": ExponentialSmoothingModel,
+
+        # Probabilistic and Statistical Models
+        "GaussianHMM": GaussianHMMModel,
+        "BayesianNetwork": BayesianNetworkModel,
+        "GMM": GMMModel,  # Gaussian Mixture Model
+
+        # Neural Networks (this is a huge domain, so here are a few common types)
+        "FeedForwardNN": FeedForwardNNModel,
+        "ConvolutionalNN": ConvolutionalNNModel,
+        "RecurrentNN": RecurrentNNModel,
+        "LSTM": LSTMModel,
+        "GRU": GRUModel,
+        
+           "ExtraTreesRegressor": ExtraTreesRegressorModel,
+        "ExtraTreesClassifier": ExtraTreesClassifierModel,
+        "Perceptron": PerceptronModel,
+
+        # Neural Networks (Deep Learning Frameworks)
+        ...
+        "AutoEncoderNN": AutoEncoderNNModel,
+        "Transformer": TransformerModel,
+        "ResNet": ResNetModel,
+        "DenseNet": DenseNetModel,
+        "GAN": GANModel,
+
+        # Anomaly Detection
+        "IsolationForest": IsolationForestModel,
+        "OneClassSVM": OneClassSVMModel,
+
+        # Ensemble Models
+        "StackingRegressor": StackingRegressorModel,
+        "StackingClassifier": StackingClassifierModel,
+        "VotingRegressor": VotingRegressorModel,
+        "VotingClassifier": VotingClassifierModel,
+
+        # NLP Specific Models
+        "Word2Vec": Word2VecModel,
+        "FastText": FastTextModel,
+        "BERT": BERTModel,
+        "GPT": GPTModel,
+
+        # Recommendation System
+        "CollaborativeFiltering": CollaborativeFilteringModel,
+        "MatrixFactorization": MatrixFactorizationModel,
+
+        # Ensemble Methods
+        "XGBoost": XGBoostModel,
+        "CatBoost": CatBoostModel,
+        "LightGBM": LightGBMModel,
+
+        # Specialized Models
+        "VowpalWabbit": VowpalWabbitModel,
+        "FactorizationMachines": FactorizationMachinesModel,
+        "FMNN": FMNNModel,
+
+        # Reinforcement Learning Models
+        "DQN": DQNModel,
+        "A3C": A3CModel,
+        "PPO": PPOModel,
+        "SAC": SACModel,
+
+    }
+
+
+    @classmethod
+    def get_model(cls, model_name, **kwargs):
+        if model_name in cls.models:
+            return cls.models[model_name](**kwargs)
+        else:
+            raise ValueError(f"Model {model_name} not found in factory!")

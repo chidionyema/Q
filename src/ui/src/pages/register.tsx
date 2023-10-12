@@ -1,9 +1,9 @@
 import React, { useState, FormEvent } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../contexts/authContext';
-import { setToken, setCookie, setUsername } from '../utility/sessionManager';
+import { setUsername } from '../utility/sessionManager';
 import { APIProxy } from '../utility/apiProxy';
 import { useApiCall } from '../hooks/useApiCall';
+
 
 // Create a single instance of APIProxy
 const apiProxyInstance = new APIProxy();
@@ -13,7 +13,6 @@ const Register: React.FC = () => {
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const { setIsAuthenticated, setLoggedInUsername } = useAuth();
   const registerApi = useApiCall(apiProxyInstance.fetchEndpoint);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -21,34 +20,36 @@ const Register: React.FC = () => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(credentials.email)) {
-      setMessage('Invalid email format!');
-      return;
+        setMessage('Invalid email format!');
+        return;
     }
 
     if (credentials.password.length < 8) {
-      setMessage('Password should be at least 8 characters!');
-      return;
+        setMessage('Password should be at least 8 characters!');
+        return;
     }
 
     setMessage('Validation successful. Making API call to register endpoint...');
 
-    try {
-      // Make the API call
-      const response = await registerApi.call('/register', {
-        method: 'POST',
-        body: JSON.stringify(credentials),
-        credentials: 'include',
-      });
+    console.log('[register] Entered registration function with credentials:', credentials);
 
-      // Check if 'token' exists in the response data
+    try {
+        console.log('[register] Making API call to /register with credentials:', credentials);
+        const response = await registerApi.call('/register', {
+            method: 'POST',
+            body: JSON.stringify(credentials),
+            credentials: 'include',
+        });
+    
+        console.log('[register] Raw API response:', response);
+    
+       // Check if 'token' exists in the response data
       if (response && response.token) {
         // Registration successful, use the session management functions
-        setToken(response.token);
-        setUsername(credentials.email);
-       // setIsAuthenticated(true);
-        setCookie('auth_cook', response.token as string, 30);
-        setLoggedInUsername(credentials.email);
-
+        const maxAge = 3600; // Set the appropriate expiration time in seconds
+     
+        document.cookie = `auth_tok=${response.token}; max-age=${maxAge}; secure; samesite=none; path=/`;
+     
         setMessage('Registration successful! Redirecting to the home page in 3 seconds...');
         setTimeout(() => {
           router.push('/');
@@ -64,11 +65,6 @@ const Register: React.FC = () => {
       setMessage('Registration failed. Please try again.');
     }
   };
-
-  
-  
-  
-
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', backgroundColor: '#f8f8f8', display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100vh' }}>

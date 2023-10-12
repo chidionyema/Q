@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { getToken, clearToken, clearCookie } from '../utility/sessionManager';
+import { getToken, clearCookie } from '../utility/sessionManager';
 import { fetchUserAuthenticationStatus } from '../utility/authHelper';
 import { useApiCall } from '../hooks/useApiCall';
 import { APIProxy } from '../utility/apiProxy';
@@ -99,10 +99,9 @@ const NavBar: React.FC = () => {
       });
 
       if (message) {
-        clearToken();
         setIsAuthenticated(false);
         setLoggedInUsername(null);
-        clearCookie('auth_cook');
+        clearCookie('auth_tok');
         router.push('/');
         toast.success('Logged out successfully!');
       } else if (error) {

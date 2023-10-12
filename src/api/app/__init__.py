@@ -5,7 +5,7 @@ from celery import Celery, Task
 from flask_socketio import SocketIO
 from flask_mail import Mail
 import logging
-import re
+
 
 db = SQLAlchemy()
 mail = Mail()

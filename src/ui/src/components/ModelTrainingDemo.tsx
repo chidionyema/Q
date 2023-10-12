@@ -49,29 +49,7 @@ const TrainingDemo = () => {
         setPredictionResults([]);
     };
     
-    const HighlightedNumber = styled('span')({
-        fontWeight: 'bold',
-        color: '#1976d2',  // blue color matching MUI primary theme (adjust if needed)
-        fontSize: '1.1rem',
-    });
-    
-    const QTraderIntroduction: React.FC = () => {
-        return (
-            <Box mt={4} mb={4}>
-                <Typography variant="h6">
-                    Welcome to Q-Trader – your one-stop solution for effortless stock trading. Whether you're a beginner or a seasoned pro, we provide the tools and technology to simplify and enhance your trading experience.
-                </Typography>
-    
-                <Typography variant="body1" mt={2}>
-                    With over <HighlightedNumber>50</HighlightedNumber> models, <HighlightedNumber>30</HighlightedNumber> optimizers, and an array of ensemble strategies, Q-Trader empowers you to create, test, and refine trading strategies with ease. Backtest market-beating approaches and gain valuable insights for confident trading.
-                </Typography>
-    
-                <Typography variant="body1" mt={2}>
-                    Join us today and leverage AI and real-time market data to make informed decisions. Start your journey to financial success with Q-Trader.
-                </Typography>
-            </Box>
-        );
-    };
+ 
     
 
     const validateInputs = () => {

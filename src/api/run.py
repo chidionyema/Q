@@ -35,7 +35,7 @@ from validate_email import validate_email
 from functools import wraps
 from app.engine import Pipeline2, RandomForest, DataLoader
 from app import socketio, db
-from app.dbdata import User, PasswordResetToken, TaskResult
+from dbdata import User, PasswordResetToken, TaskResult, ModelCategory, MLModel, EnsembleStrategy, ModelOptimizer
 
 load_dotenv()
 
@@ -84,19 +84,14 @@ CORS(app, resources={r"/*": {
 
 limiter = Limiter(app)
 # If you're using multiple instances or servers, make sure that each one of them has access to this Redis server.
-
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #cert_path = os.environ.get('CERT_PATH')
 #key_path = os.environ.get('KEY_PATH')
-
-
 bcrypt = Bcrypt(app)
 JWT_SECRET = os.environ.get('JWT_SECRET')
 
+
 migrate = Migrate(app, db) 
-
-
 
 def token_required(f):
     @wraps(f)
@@ -127,8 +122,6 @@ def not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return jsonify(error=str(e)), 500
-
-
 
 @app.route('/reset_password', methods=['GET', 'POST'])
 def request_password_reset():
@@ -209,7 +202,7 @@ def register():
         return jsonify({"message": "Password should be at least 8 characters!"}), 400
 
     user = retrieve_or_create_user(email, "", "")
-
+    username = email.split('@')[0]
     token = generate_jwt_token_for_user(user)
 
     # Print statements for debugging
@@ -217,8 +210,7 @@ def register():
     print(f"Generated JWT Token: {token}")
 
     # Return both the token and the email
-    return jsonify({"token": token, "email": email})
-
+    return jsonify({"token": token, "username": username})
 
 
 @app.route('/login', methods=['POST'])
@@ -387,7 +379,7 @@ from flask import jsonify
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     response = make_response(jsonify({"message": "Logged out successfully"}))
-    response.delete_cookie('auth_token')
+    response.delete_cookie('auth_cook')
     return response
 
 
@@ -455,16 +447,8 @@ def authorized_google():
             logging.error("Failed to retrieve or create user.")
             raise ValueError("Failed to retrieve or create user.")
   
-
-
         token = generate_jwt_token_for_user(user)
-        print("generated new jwt token")
-
-        # Enhancing security of cookies and setting expiration
-        expiration_time = datetime.now() + timedelta(days=1)  # 1 day expiration for example
-        # Replace 'YOUR_CALLBACK_URL' with the actual callback URL
-        callback_url = 'https://ui.dev.io:3000/callback' + f'?token={token}'
-        print("set callback and sending back response")
+        print("generated new jwt token")    
 
         if user.is_active == False:
             activation_token = generate_activation_token()
@@ -472,10 +456,14 @@ def authorized_google():
             activation_link = url_for('activate_account', token=activation_token, _external=True)
             #send_activation_email.apply_async(args=[email, activation_link])
 
-
+        # Enhancing security of cookies and setting expiration
+        expiration_time = datetime.now() + timedelta(days=1)  # 1 day expiration for example
+        username = email.split('@')[0]
+        callback_url = 'https://ui.dev.io:3000/auth-verification' + f'?username={username}'
+        print("set callback and sending back response")
         response = make_response(redirect(callback_url))
         response.set_cookie(
-            'auth_token', 
+            'auth_cook', 
             token, 
             httponly=True, 
             secure=True, 
@@ -486,11 +474,9 @@ def authorized_google():
 
         headers = response.headers
         print(f"Headers from Google's token endpoint: {headers}")
-
         print("Returning successful response.")
 
         return response
-
 
     except ValueError as e:
         logging.error(f"Value Error: {e}")
@@ -519,8 +505,6 @@ def generate_activation_token():
     activation_token = secrets.token_hex(16)  # You can adjust the token length as needed
     return activation_token
 
-
-
 def error_response(message, status_code=400):
     print(message)
     return jsonify({"message": message}), status_code
@@ -548,9 +532,6 @@ def retrieve_or_create_user(email, access_token, refresh_token, provider="google
         db.session.commit()
 
     return user
-
-
-
 
 def fetch_user_info_from_google(access_token):
     userinfo_url = 'https://www.googleapis.com/oauth2/v1/userinfo'

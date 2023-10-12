@@ -341,3 +341,197 @@ class RLHyperparameterOptimizer(Optimizer):
         search.fit(X_train, y_train)
         model.set_params(**search.best_params_)
         return model
+
+
+class OptimizerFactory:
+    @staticmethod
+    def get_optimizer(optimizer_type, *args, **kwargs):
+        optimizers = {
+            # Basic Gradient Descent
+            "GradientDescent": GradientDescentOptimizer,
+            
+            # Variants of Gradient Descent
+            "StochasticGradientDescent": StochasticGradientDescentOptimizer,
+            "MiniBatchGradientDescent": MiniBatchGradientDescentOptimizer,
+            
+            # Momentum-based Methods
+            "Momentum": MomentumOptimizer,
+            "NesterovAcceleratedGradient": NesterovAcceleratedGradientOptimizer,
+
+            # Adaptive Learning Rates
+            "Adagrad": AdagradOptimizer,
+            "RMSprop": RMSpropOptimizer,
+            "Adadelta": AdadeltaOptimizer,
+            "Adam": AdamOptimizer,
+            "AdamW": AdamWOptimizer, 
+            "Adamax": AdamaxOptimizer,
+            "Nadam": NadamOptimizer,
+            "FTRL": FTROptimizer,
+
+            # Quasi-Newton Methods
+            "BFGS": BFGSOptimizer,
+            "L-BFGS": LBFGSOptimizer,
+            "DFP": DFPOptimizer,
+            "Broyden": BroydenOptimizer,
+
+            # Newton and Conjugate Gradient Methods
+            "NewtonRaphson": NewtonRaphsonOptimizer,
+            "ConjugateGradient": ConjugateGradientOptimizer,
+
+            # Trust Region Methods
+            "TrustRegion": TrustRegionOptimizer,
+            "Dogleg": DoglegOptimizer,
+            
+            # Evolutionary Algorithms
+            "GeneticAlgorithm": GeneticAlgorithmOptimizer,
+            "DifferentialEvolution": DifferentialEvolutionOptimizer,
+            "ParticleSwarm": ParticleSwarmOptimizer,
+            "CMA_ES": CMA_ESOptimizer,
+
+            # Random and Grid Search
+            "RandomSearch": RandomSearchOptimizer,
+            "GridSearch": GridSearchOptimizer,
+            
+            # Simulated Annealing
+            "SimulatedAnnealing": SimulatedAnnealingOptimizer,
+            
+            # Bayesian Optimization
+            "Bayesian": BayesianOptimizer,
+            "GaussianProcess": GaussianProcessOptimizer,
+            
+            # Coordinate Descent
+            "CoordinateDescent": CoordinateDescentOptimizer,
+
+            # Multi-objective Optimization
+            "NSGA_II": NSGA_IIOptimizer,
+            "SPEA2": SPEA2Optimizer,
+            
+            # Swarm Intelligence
+            "AntColony": AntColonyOptimizer,
+            "BeeAlgorithm": BeeAlgorithmOptimizer,
+            "FireflyAlgorithm": FireflyAlgorithmOptimizer,
+
+            # Reinforcement Learning based
+            "REINFORCE": REINFORCEOptimizer,
+            
+            # Others
+            "SMBO": SMBOOptimizer,  
+            "Hyperband": HyperbandOptimizer,
+            "TPE": TPEOptimizer,  
+            "Powell": PowellOptimizer, 
+            "Annealing": AnnealingOptimizer,
+            "SequentialLeastSquares": SequentialLeastSquaresOptimizer,
+            
+          # Metaheuristics
+            "TabuSearch": TabuSearchOptimizer,
+            "VariableNeighborhoodSearch": VariableNeighborhoodSearchOptimizer,
+
+            # Derivative-Free Optimization
+            "NelderMead": NelderMeadOptimizer,
+            "PatternSearch": PatternSearchOptimizer,
+            "DividingRectangles": DividingRectanglesOptimizer,
+            "DIRECT": DIRECTOptimizer,
+
+            # Multi-armed Bandits
+            "UCB1": UCB1Optimizer,
+            "ThompsonSampling": ThompsonSamplingOptimizer,
+            
+            # Multi-agent algorithms
+            "CrowSearch": CrowSearchOptimizer,
+            "GreyWolf": GreyWolfOptimizer,
+            "WhaleOptimization": WhaleOptimizationOptimizer,
+            "Grasshopper": GrasshopperOptimizer,
+
+            # Decomposition based
+            "MOEAD": MOEADOptimizer,
+            
+            # Informational methods
+            "CrossEntropy": CrossEntropyOptimizer,
+
+            # Global Best Methods
+            "GoldenSection": GoldenSectionOptimizer,
+            "SuccessiveParabolicInterpolation": SuccessiveParabolicInterpolationOptimizer,
+
+            # Constraint programming and solvers
+            "CP_Solver": CPSolverOptimizer,
+            "SMT_Solver": SMTSolverOptimizer,
+            
+            # Multi-level methods
+            "Multigrid": MultigridOptimizer,
+
+            # Randomized methods
+            "Resampling": ResamplingOptimizer,
+
+            # Nested methods
+            "Nested": NestedOptimizer,
+
+            # Decomposition-based
+            "DantzigWolfe": DantzigWolfeOptimizer,
+            "BendersDecomposition": BendersDecompositionOptimizer,
+            
+            # Linear Programming based
+            "Simplex": SimplexOptimizer,
+            "Barrier": BarrierOptimizer,
+            "Ellipsoid": EllipsoidOptimizer,
+
+            # Penalty and Barrier methods
+            "PenaltyMethod": PenaltyMethodOptimizer,
+            "AugmentedLagrangian": AugmentedLagrangianOptimizer,
+            
+            # Game-theoretic methods
+            "FictitiousPlay": FictitiousPlayOptimizer,
+            "MultiAgentQLearning": MultiAgentQLearningOptimizer,
+            
+            # Others
+            "MarkovChainMonteCarlo": MarkovChainMonteCarloOptimizer,
+            "HookesJeeves": HookesJeevesOptimizer,
+            "FrankWolfe": FrankWolfeOptimizer,
+
+            # Evolutionary Algorithms
+            "GeneticAlgorithm": GeneticAlgorithmOptimizer,
+            "DifferentialEvolution": DifferentialEvolutionOptimizer,
+            "CuckooSearch": CuckooSearchOptimizer,
+            "FireflyAlgorithm": FireflyAlgorithmOptimizer,
+            "ParticleSwarmOptimization": ParticleSwarmOptimizationOptimizer,
+            "AntColonyOptimization": AntColonyOptimizationOptimizer,
+            "BeeAlgorithm": BeeAlgorithmOptimizer,
+            
+            # Swarm Intelligence
+            "BatAlgorithm": BatAlgorithmOptimizer,
+            "JayaAlgorithm": JayaAlgorithmOptimizer,
+            "HarmonySearch": HarmonySearchOptimizer,
+            "MonkeyAlgorithm": MonkeyAlgorithmOptimizer,
+            
+            # Physics-based Algorithms
+            "SimulatedAnnealing": SimulatedAnnealingOptimizer,
+            "GravitationalSearchAlgorithm": GravitationalSearchAlgorithmOptimizer,
+            
+            # Membrane Computing
+            "PSystems": PSystemsOptimizer,
+            
+            # Neural Network-based Optimization
+            "NeuralNetworkBased": NeuralNetworkBasedOptimizer,
+            
+            # Multi-modal Optimization
+            "NichingMethods": NichingMethodsOptimizer,
+            
+            # Hybrid methods
+            "HybridGA_PSO": HybridGAPSOOptimizer,
+            "HybridDE_PSO": HybridDEPSOOptimizer,
+            
+            # Biogeography-based Optimization
+            "BiogeographyBased": BiogeographyBasedOptimizer,
+            
+            # Recent or Less Common Methods
+            "SineCosineAlgorithm": SineCosineAlgorithmOptimizer,
+            "GWO_PSO": GWOPSOOptimizer,  # Grey Wolf Optimizer with Particle Swarm Optimization
+            "BlackHoleAlgorithm": BlackHoleAlgorithmOptimizer,
+            "CollidingBodiesOptimization": CollidingBodiesOptimizationOptimizer,
+            "WaterWaveOptimization": WaterWaveOptimizationOptimizer,
+        }
+
+        optimizer_class = optimizers.get(optimizer_type)
+        if not optimizer_class:
+            raise ValueError(f"Optimizer type {optimizer_type} not recognized")
+
+        return optimizer_class(*args, **kwargs)

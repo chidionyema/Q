@@ -1,18 +1,15 @@
-import { getToken, getCookie, clearToken, clearCookie } from '../utility/sessionManager';
+import { getToken, getCookie, clearCookie } from '../utility/sessionManager';
 
 export function fetchUserAuthenticationStatus(): boolean {
     try {
       // Check for the session cookie that you previously set in the Callback component
-      const cookieToken = getCookie('auth_cook');
-      const localToken = getToken()
+      const cookieToken = getCookie('auth_tok');
   
-      if (cookieToken && localToken && cookieToken === localToken) {
+      if (cookieToken) {
         // If the cookie exists, consider the user as authenticated
         return true;
       } else {
-        // If the cookie is missing, consider the user as not authenticated
-        clearToken(); 
-        clearCookie('auth_cook')// Clear any invalid or expired tokens from the utility
+        clearCookie('auth_tok')// Clear any invalid or expired tokens from the utility
         return false;
       }
     } catch (error) {

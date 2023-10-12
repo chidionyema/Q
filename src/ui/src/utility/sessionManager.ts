@@ -1,25 +1,17 @@
 // utility/sessionManager.ts
+import { parse } from 'cookie';
 
-// Define a function to get the session token
 export function getToken(): string | null {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('jwt');
-  }
-  return null;
-}
+    // Get the 'auth_tok' cookie value from document.cookie
+    const cookies = parse(document.cookie);
+    const authToken = cookies['auth_tok']; // Retrieve the 'auth_tok' cookie by name
 
-// Define a function to set the session token
-export function setToken(token: string): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('jwt', token);
+    if (authToken) {
+      return authToken; // Return the token if found
+    }
   }
-}
-
-// Define a function to clear the session token
-export function clearToken(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('jwt');
-  }
+  return null; // Return null if the token is not found or if window is undefined
 }
 
 // Define a function to get the logged-in username
@@ -44,28 +36,18 @@ export function clearUsername(): void {
   }
 }
 
-
 // Define a function to get a cookie by name
 export function getCookie(name: string): string | null {
+  console.log("getCookie called for:", name); // Debugging line
   if (typeof window !== 'undefined') {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-
-    if (parts.length === 2) {
-      return parts.pop()?.split(';').shift() || null;
+    const cookies = parse(document.cookie);
+    const cookieValue = cookies[name];
+    console.log("Parsed cookies:", cookies); // Debugging line
+    if (cookieValue !== undefined) {
+      return cookieValue;
     }
   }
   return null;
-}
-
-export function setCookie(name: string, value: string, hours : number = 1, secure = true) {
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-    const date = new Date();
-    date.setTime(date.getTime() + hours * 60 * 60 * 1000); // Set expiration time to one hour
-    const expires = `expires=${date.toUTCString()}`;
-    const secureAttribute = secure ? 'Secure;' : ''; // Add the 'Secure' attribute if secure is true
-    document.cookie = `${name}=${value};${expires};path=/;${secureAttribute}`;
-  }
 }
 
 

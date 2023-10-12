@@ -2,7 +2,7 @@ from flask_mail import Mail, Message
 from app.engine import Pipeline2, RandomForest, DataLoader, ModelBuilder, GridSearchOptimizer, RandomForestRegressor
 from datetime import datetime
 from app import create_app, db, celery, mail, socketio
-from app.dbdata import TaskResult
+from dbdata import TaskResult
 
 def convert_to_date_only(datetime_str):
     dt_obj = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ")

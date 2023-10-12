@@ -33,26 +33,28 @@ export const useApiCall = <T>(apiFunc: ApiCallFunc<T>): UseApiCallReturnType<T> 
 
       setLoading(true);
       setError(null);
-
       try {
-        console.log(`[useApiCall] Making API call...`);
-        const response = await apiFunc(endpoint, options);
-        console.log(`[useApiCall] Received response:`, response);
-
-        if (response.success) {
-          setLoading(false);
-          return response.data; // Return the data if the response is successful
+        console.log(`[useApiCall] Making API call to endpoint:`, endpoint);
+        console.log(`[useApiCall] With options:`, options);
+        const rawResponse = await apiFunc(endpoint, options);
+        console.log(`[useApiCall] Raw response:`, rawResponse);
+    
+        if (rawResponse.success) {
+            setLoading(false);
+            return rawResponse.data;
         } else {
-          setError(response.error || 'An error occurred.');
-          setLoading(false);
-          throw new Error(response.error || 'An error occurred.');
+            setError(rawResponse.error || 'An error occurred.');
+            setLoading(false);
+            throw new Error(rawResponse.error || 'An error occurred.');
         }
-      } catch (e) {
+    } catch (e) {
         console.error(`[useApiCall] Error during API call:`, e);
         setError(e || 'An error occurred.');
         setLoading(false);
         throw e;
-      }
+    }
+    
+    
     },
     [apiFunc]
   );
