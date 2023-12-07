@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Grid, Typography, Tabs, Tab, FormControl, InputLabel, Select, MenuItem, Button,
-  TextField, Autocomplete, Box, Switch, FormControlLabel, Paper
+  TextField, Autocomplete, Box, Switch, FormControlLabel, Paper, TableContainer, Table, TableHead, TableBody, TableRow, TableCell
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { styled } from '@mui/system';
@@ -87,6 +87,12 @@ const App = () => {
   const [selectedStocks, setSelectedStocks] = useState<string[]>([]);
   const [currentStockTab, setCurrentStockTab] = useState<number>(0);
   const [stockConfig, setStockConfig] = useState<{[key: string]: any}>({});
+  const [serverFeedback, setServerFeedback] = useState('');
+  const [maeVal, setMaeVal] = useState(null);
+  const [maeTest, setMaeTest] = useState(null);
+  const [predictionResults, setPredictionResults] = useState<StockPredictionResults>({});
+
+
   const today = new Date();
 
   
@@ -183,22 +189,37 @@ const fetchModels = async () => {
     fetchVotingStrategies();
   }, []);
   
-
   const socketManager = SocketManager.getInstance();
+ 
+  interface StockPredictionResult {
+    symbol: string;
+    mae_val: number;
+    mae_test: number;
+}
 
-  useEffect(() => {
-    
+type StockPredictionResults = {
+    [key: string]: StockPredictionResult;
+};
+
+  useEffect(() => {  
       socketManager.connect();
-
       socketManager.on('connect', () => console.log('Connected to server'));
+      
       socketManager.on('training_complete', (data) => {
-          console.log('Training complete:', data);
-          //setIsTraining(false);
-          //setIsLoading(false);
-         // setMaeVal(data.mae_val);
-         //setMaeTest(data.mae_test);
-         // setPredictionResults(data.predictions);
-      });
+        const updatedResults: { [key: string]: StockPredictionResult } = { ...predictionResults };
+        
+        if (data.predictions && Array.isArray(data.predictions)) {
+            data.predictions.forEach((result: StockPredictionResult) => {
+                updatedResults[result.symbol] = result;
+            });
+            setPredictionResults(updatedResults);
+        } else {
+            console.error("Unexpected data format:", data);
+        }
+    });
+    
+    
+    
       socketManager.on('training_error', (error) => {
           console.error('Training error:', error);
          // setIsTraining(false);
@@ -334,7 +355,41 @@ const fetchModels = async () => {
               <Button variant="contained" color="primary" onClick={startTraining}>Submit Configurations</Button>
             </Box>
           </Paper>
+
+          {selectedStocks.length > 0 && (
+    <Grid item xs={12}>
+        {selectedStocks.map(stock => (
+            <Paper key={stock} elevation={3} style={{ marginTop: '1rem', padding: '1rem' }}>
+                <Typography variant="h5" gutterBottom align="center">Prediction Results for {stock}</Typography>
+                <Box mt={2}>
+                    {predictionResults[stock] ? (
+                        <TableContainer component={Paper}>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>MAE Val</TableCell>
+                                        <TableCell>MAE Test</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell>{predictionResults[stock].mae_val}</TableCell>
+                                        <TableCell>{predictionResults[stock].mae_test}</TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    ) : (
+                        <Typography variant="body1">No results available yet for {stock}</Typography>
+                    )}
+                </Box>
+            </Paper>
+        ))}
+    </Grid>
+)}
+
         </Grid>
+        
       )}
     </Grid>
   );

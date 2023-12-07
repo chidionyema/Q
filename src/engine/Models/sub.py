@@ -1,3 +1,37 @@
+from abc import ABC, abstractmethod
+from collections import Counter, defaultdict
+
+from sklearn.model_selection import RandomizedSearchCV
+from skopt import BayesSearchCV
+
+
+
+
+# --- Models ---
+class BaseModel(ABC):
+    def __init__(self, name, algorithm_instance):
+        self.name = name
+        self.algorithm_instance = algorithm_instance
+
+    @abstractmethod
+    def train(self, X_train, y_train):
+        pass
+
+    def predict(self, X):
+        return self.algorithm_instance.predict(X)
+    
+
+# --- Optimizers ---
+class Optimizer(ABC):
+    @abstractmethod
+    def optimize(self, model, X_train, y_train):
+        pass
+
+class EnsembleStrategy(ABC):
+    @abstractmethod
+    def combine(self, predictions):
+        pass
+
 
 
 class RandomSearchOptimizer(Optimizer):
@@ -240,3 +274,42 @@ class AverageStrategy(EnsembleStrategy):
         """Assumes predictions are continuous values."""
         flattened_predictions = [pred for sublist in predictions for pred in sublist]
         return sum(flattened_predictions) / len(flattened_predictions)
+    
+
+    class MappingLayer
+    models_mapping = {
+    "SVM": SVM,
+    "GBM": GBM,
+    "LogReg": LogReg,
+    "KNN": KNN,
+    "NeuralNetwork": NeuralNetwork,
+    "XGBoost": XGBoost,
+    }
+
+    optimizers_mapping = {
+    "RandomSearch": RandomSearchOptimizer,
+    "Bayesian": BayesianOptimizer,
+    "PSO": PSOOptimizer,
+    "SimulatedAnnealing": SimulatedAnnealingOptimizer,
+    "TPE": TPEOptimizer,
+    "OptunaCMAES": OptunaCMAESOptimizer,
+    "DEAPGA": DEAPGAOptimizer,
+    "OptunaTPE": OptunaTPEOptimizer,
+    # Add other optimizers here
+    }
+
+    ensemble_strategies_mapping = {
+    "ThresholdVoting": ThresholdVotingStrategy,
+    "BordaCount": BordaCountStrategy,
+    "SoftVoting": SoftVotingStrategy,
+    "MaxVoting": MaxVotingStrategy,
+    "MinVoting": MinVotingStrategy,
+    "Product": ProductStrategy,
+    "RankAveraging": RankAveragingStrategy,
+    "MajorityVote": MajorityVoteStrategy,
+   # "Average": AverageStrategy,
+    # Add other strategies here
+}
+
+
+}
