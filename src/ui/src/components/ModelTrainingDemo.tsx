@@ -97,8 +97,9 @@ const apiCall = useApiCall(apiProxyInstance.fetchEndpoint);
 const fetchModels = async () => {
   try {
     const response = await apiCall.call('/fetch-models');
-    if (response && response.data) {
-      setModels(response.data);
+    if (response) {
+      console.log('yes response')
+      setModels(response);
     } else {
       // Handle the case where data is not present in the response
       setModels([]);
@@ -114,10 +115,14 @@ const fetchModels = async () => {
   const fetchOptimizers = async () => {
     try {
       const response = await apiCall.call('/fetch_optimizers');
-      console.log(response);
-      if (response && response.data) {
-        setOptimizers(response.data);
+
+      if (response && response) {
+        console.log('yes response')
+        setOptimizers( response);
       } else {
+        console.log(response);
+        console.log(response);
+        console.log('no response')
         // Handle the case where data is not present in the response
         setOptimizers([]);
       }
@@ -129,8 +134,9 @@ const fetchModels = async () => {
   const fetchVotingStrategies = async () => {
     try {
       const response = await apiCall.call('/fetch_ensembles');
-      if (response && response.data) {
-        setVotingStrategies(response.data);
+      if (response) {
+        console.log('yes response')
+        setVotingStrategies(response);
       } else {
         // Handle the case where data is not present in the response
         setVotingStrategies([]);
