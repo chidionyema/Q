@@ -13,7 +13,9 @@ from sklearn.impute import SimpleImputer
 import logging
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import ThreadPoolExecutor
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_percentage_error
+
+
 
 # Define classes and functions you want to expose
 __all__ = [
@@ -703,32 +705,39 @@ class Pipeline2:
         prepped_data = [(stock_info, future.result()) for stock_info, future in prepped_data]
         return prepped_data
     
+
     def train_and_evaluate(self, stock_info, X_train, y_train, X_val, y_val, X_test, y_test):
         """Trains models and evaluates their performance on validation and test data."""
         symbol, _, _, _, _, model_builder = stock_info
         try:
-            
             self.models[symbol] = model_builder.build(X_train, y_train)
-            
             self.ensemble = Ensemble(list(self.models.values()))
 
             self.ensemble.train(X_train, y_train)
 
             val_predictions = self.ensemble.predict(X_val)
             mae_val = mean_absolute_error(y_val, val_predictions)
-            print(f"Validation Mean Absolute Error for {symbol}: {mae_val}")
+            mse_val = mean_squared_error(y_val, val_predictions)
+            r2_val = r2_score(y_val, val_predictions)
+            mape_val = mean_absolute_percentage_error(y_val, val_predictions)
 
             test_predictions = self.ensemble.predict(X_test)
             mae_test = mean_absolute_error(y_test, test_predictions)
-            print(f"Test Mean Absolute Error for {symbol}: {mae_test}")
+            mse_test = mean_squared_error(y_test, test_predictions)
+            r2_test = r2_score(y_test, test_predictions)
+            mape_test = mean_absolute_percentage_error(y_test, test_predictions)
 
-            return test_predictions, mae_val, mae_test  # Return test predictions, MAE on validation data, and MAE on test data
+            # Log or print the evaluation metrics
+            print(f"Validation MAE for {symbol}: {mae_val}, MSE: {mse_val}, R2: {r2_val}, MAPE: {mape_val}")
+            print(f"Test MAE for {symbol}: {mae_test}, MSE: {mse_test}, R2: {r2_test}, MAPE: {mape_test}")
+
+            return test_predictions, mae_val, mae_test, mse_val, mse_test, r2_val, r2_test, mape_val, mape_test
 
         except Exception as e:
             logging.error(f"Error in Pipeline run for {symbol}: {e}")
             logging.error(traceback.format_exc())
         return None, None, None  # Return None values if there is an error
-# Return test predictions
+
 
 
     def extract_features_and_labels(self, processed_data, is_temporal_model):
@@ -808,18 +817,14 @@ class Pipeline2:
             X_train, X_val, X_test = self.prepare_data_for_ml(X_train, X_val, X_test)
 
             print(f"[process_data_pipeline] Data dimensions AFTER preprocessing - X_train: {len(X_train)}, X_val: {len(X_val)}, X_test: {len(X_test)}")
-
-            test_predictions, mae_val, mae_test = self.train_and_evaluate(si, X_train, y_train, X_val, y_val, X_test, y_test)
-            test_predictions_list.append((si, test_predictions, mae_val, mae_test))
+            test_predictions, mae_val, mae_test, mse_val, mse_test, r2_val, r2_test, mape_val, mape_test = self.train_and_evaluate(si, X_train, y_train, X_val, y_val, X_test, y_test)
+        # Now you can use these metrics as needed
+            test_predictions_list.append((si, test_predictions, mae_val, mae_test, mse_val, mse_test, r2_val, r2_test, mape_val, mape_test))
 
         return test_predictions_list
 
-
-
-
     def begin_predict(self, new_data):             
         return self.ensemble.predict(new_data)
-
         from sklearn.metrics import mean_absolute_error
 
 class WalkForwardValidation:

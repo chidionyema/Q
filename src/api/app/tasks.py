@@ -33,48 +33,52 @@ def send_password_reset_email(email, reset_link):
 def train_model_task(self, configurations):
     with create_app().app_context():
         try:
-            all_mae_values = []
+            all_results = []  # Storing all metrics
 
             for config in configurations:
-                # Parsing dates from string to datetime
+                # Parsing dates and initializing model and optimizer
                 symbol = config['symbol']
                 start_date = datetime.strptime(config['start_date'], "%Y-%m-%dT%H:%M:%S.%fZ")
                 end_date = datetime.strptime(config['end_date'], "%Y-%m-%dT%H:%M:%S.%fZ")
-
-                # Convert dates to string in the required format
                 start_date_str = convert_to_date_only(start_date)
                 end_date_str = convert_to_date_only(end_date)
 
-                # Fetching model and optimizer classes
                 model_class = MappingLayer.models_mapping.get(config['model_name'])
-               # optimizer_class = MappingLayer.optimizers_mapping.get(config['optimizer_name'])
                 optimizer = OptimizerFactory.create_optimizer(config['optimizer_name'], param_grid={"n_estimators": [10, 50, 100]})
-                # optimizer = optimizer_class(param_grid={"n_estimators": [10, 50, 100]}) if optimizer_class else None
 
-                # Setting up model builder and pipeline
                 model_builder = ModelBuilder(model_class, optimizer=optimizer)
                 stocks_info = [(symbol, start_date_str, end_date_str, 14, 3, model_builder)]
                 pipeline = Pipeline2(stocks_info)
                 predictions = pipeline.process_data_pipeline()
 
-                # Collecting and appending results
+                # Collecting metrics for each prediction
                 for prediction in predictions:
-                    si, test_predictions, mae_val, mae_test = prediction
-                    all_mae_values.append({'symbol': symbol, 'mae_val': mae_val, 'mae_test': mae_test})
+                    si, test_predictions, mae_val, mae_test, mse_val, mse_test, r2_val, r2_test, mape_val, mape_test = prediction
+                    all_results.append({
+                        'symbol': symbol, 
+                        'mae_val': mae_val, 
+                        'mae_test': mae_test,
+                        'mse_val': mse_val,
+                        'mse_test': mse_test,
+                        'r2_val': r2_val,
+                        'r2_test': r2_test,
+                        'mape_val': mape_val,
+                        'mape_test': mape_test
+                    })
 
-            # Storing results in the database
-            result = TaskResult(task_id=self.request.id, result=all_mae_values)
+            # Storing results in database and emitting completion message
+            result = TaskResult(task_id=self.request.id, result=all_results)
             db.session.add(result)
             db.session.commit()
 
-            # Emitting socket message upon completion
-            socketio.emit('training_complete', {'progress': 100, 'message': 'Training completed!', 'predictions': all_mae_values})
+            socketio.emit('training_complete', {'progress': 100, 'message': 'Training completed!', 'predictions': all_results})
 
-            return all_mae_values
+            return all_results
 
         except Exception as e:
             db.session.rollback()
             raise e
+
 
 def convert_to_date_only(datetime_obj):
     """Converts datetime object to date string."""

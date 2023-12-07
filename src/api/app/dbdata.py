@@ -15,7 +15,6 @@ class User(db.Model):
     refresh_token = db.Column(db.String(500), nullable=True)
     first_login = db.Column(db.Boolean, default=True, nullable=True)
     is_active = db.Column(db.Boolean, default=False) 
-    
 
     def __repr__(self):
             return f"<User {self.email}>"    
