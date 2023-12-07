@@ -134,7 +134,7 @@ def generate_unique_code(name, table_name):
 
 def populate_model_categories():
     categories = [
-        "Clustering", "Dimensionality Reduction", "Time Series",
+        "Regression",  "Classification"  "Clustering", "Dimensionality Reduction", "Time Series",
         # ... other categories
     ]
     with app.app_context():

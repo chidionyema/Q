@@ -1,5 +1,5 @@
 from flask_mail import Mail, Message
-from app.engine import Pipeline2, RandomForest, DataLoader, ModelBuilder, GridSearchOptimizer, RandomForestRegressor
+from app.engine import Pipeline2, RandomForest, DataLoader, ModelBuilder, GridSearchOptimizer, RandomForestRegressor, MappingLayer
 from datetime import datetime
 from app import create_app, db, celery, mail, socketio
 from dbdata import TaskResult
@@ -23,47 +23,53 @@ def send_password_reset_email(email, reset_link):
         mail.send(msg)
 
 
-
 @celery.task(bind=True)
-def train_model_task(self, symbol, start_date, end_date, model):
+def train_model_task(self, configurations):
     with create_app().app_context():
         try:
-            # Validate date format
-            datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-            datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            all_mae_values = []
 
-            start_date = convert_to_date_only(start_date)
-            end_date = convert_to_date_only(end_date)
+            for config in configurations:
+                symbol = config['symbol']
+                start_date = datetime.strptime(config['start_date'], "%Y-%m-%dT%H:%M:%S.%fZ")
+                end_date = datetime.strptime(config['end_date'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
-            # Training code
-            rf_builder = ModelBuilder(RandomForest, optimizer=GridSearchOptimizer(param_grid={"n_estimators": [10, 50, 100]}))
-            stocks_info = [(symbol, start_date, end_date, 14, 3, rf_builder)]
-            pipeline = Pipeline2(stocks_info)
-            predictions = pipeline.process_data_pipeline()
+                # Convert start and end dates
+                start_date = convert_to_date_only(start_date)
+                end_date = convert_to_date_only(end_date)
 
-            mae_values = []
-            for prediction in predictions:
-                si, test_predictions, mae_val, mae_test = prediction
-                mae_values.append({'mae_val': mae_val, 'mae_test': mae_test})
+                # Load model and optimizer classes from mappings
+                model_class = MappingLayer.models_mapping.get(config['model_name'])
+                optimizer_class = MappingLayer.optimizers_mapping.get(config['optimizer_name'])
+                optimizer = optimizer_class(param_grid={"n_estimators": [10, 50, 100]}) if optimizer_class else None
 
-            # Store the result
-            result = TaskResult(task_id=self.request.id, result=mae_values)
+                # Build and train the model
+                model_builder = ModelBuilder(model_class, optimizer=optimizer)
+                stocks_info = [(symbol, start_date, end_date, 14, 3, model_builder)]
+                pipeline = Pipeline2(stocks_info)
+                predictions = pipeline.process_data_pipeline()
+
+                # Collect results
+                for prediction in predictions:
+                    si, test_predictions, mae_val, mae_test = prediction
+                    all_mae_values.append({'symbol': symbol, 'mae_val': mae_val, 'mae_test': mae_test})
+
+            # Store the result for all configurations
+            result = TaskResult(task_id=self.request.id, result=all_mae_values)
             db.session.add(result)
             db.session.commit()
 
+            # Notify completion
             socketio.emit('training_complete', {
                 'progress': 100,
                 'message': 'Training completed!',
-                'predictions': mae_values
+                'predictions': all_mae_values
             })
 
-            return mae_values
+            return all_mae_values
 
         except Exception as e:
             db.session.rollback()
-            
-            # Emit error in a background task
             socketio.start_background_task(background_emit, 'training_error', {'error': str(e)})
-            
             raise e
 

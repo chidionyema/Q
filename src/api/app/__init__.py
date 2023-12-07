@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from celery import Celery, Task
 from flask_socketio import SocketIO
 from flask_mail import Mail
+
 import logging
 
 
@@ -17,6 +18,7 @@ def create_app():
     return app
 
 app = create_app()  # Flask app
+
 
 # Custom logger for Flask-SocketIO
 logging.basicConfig(level=logging.INFO)
