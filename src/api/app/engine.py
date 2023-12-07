@@ -14,7 +14,7 @@ import logging
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_percentage_error
-
+from xgboost import XGBClassifier
 
 
 # Define classes and functions you want to expose
@@ -69,7 +69,22 @@ from skopt import BayesSearchCV
 
 
 
-# --- Models ---
+# Import necessary libraries
+from abc import ABC, abstractmethod
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor, RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.svm import SVR, SVC
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet, BayesianRidge, ARDRegression, SGDRegressor, PassiveAggressiveRegressor, HuberRegressor, TheilSenRegressor, RANSACRegressor, OrthogonalMatchingPursuit, Lars, LassoLars
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.mixture import GaussianMixture
+import numpy as np
+
+# BaseModel class
 class BaseModel(ABC):
     def __init__(self, name, algorithm_instance):
         self.name = name
@@ -81,7 +96,134 @@ class BaseModel(ABC):
 
     def predict(self, X):
         return self.algorithm_instance.predict(X)
-    
+
+# Model implementations
+class RandomForestRegressorModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("RandomForestRegressor", RandomForestRegressor(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+class GradientBoostingRegressorModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("GradientBoostingRegressor", GradientBoostingRegressor(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+class AdaBoostRegressorModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("AdaBoostRegressor", AdaBoostRegressor(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# ... (continue for other regression models)
+
+class RandomForestClassifierModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("RandomForestClassifier", RandomForestClassifier(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+class AdaBoostClassifierModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("AdaBoostClassifier", AdaBoostClassifier(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+class GradientBoostingClassifierModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("GradientBoostingClassifier", GradientBoostingClassifier(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# ... (continue for other classification models)
+
+class KMeansModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("KMeans", KMeans(**(params or {})))
+
+    def train(self, X_train, y_train=None):
+        self.algorithm_instance.fit(X_train)
+
+# ... (continue for other clustering and dimensionality reduction models)
+
+class PCAModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("PrincipalComponentAnalysis", PCA(**(params or {})))
+
+    def train(self, X_train, y_train=None):
+        self.algorithm_instance.fit(X_train)
+
+# Gaussian Mixture Model (GaussianHMM)
+class GaussianMixtureModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("GaussianHMM", GaussianMixture(**(params or {})))
+
+    def train(self, X_train, y_train=None):
+        self.algorithm_instance.fit(X_train)
+
+# ARIMA Model
+class ARIMAModel(BaseModel):
+    def __init__(self, order=(1, 1, 1)):
+        super().__init__("ARIMA", ARIMA(None, order=order))
+
+    def train(self, X_train, y_train=None):
+        self.algorithm_instance = self.algorithm_instance.fit(X_train)
+
+# ... (previous imports and BaseModel definition)
+
+# Define classes for additional models as per your mapping
+class SVMModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("SVM", SVC(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+class LogRegModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("LogReg", LogisticRegression(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+class KNNModel(BaseModel):
+    def __init__(self, params=None):
+        from sklearn.neighbors import KNeighborsClassifier  # Import here to avoid circular dependency
+        super().__init__("KNN", KNeighborsClassifier(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+class NeuralNetworkModel(BaseModel):
+    def __init__(self, params=None):
+        from sklearn.neural_network import MLPClassifier  # Example with Multi-layer Perceptron classifier
+        super().__init__("NeuralNetwork", MLPClassifier(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+class XGBoostModel(BaseModel):
+    def __init__(self, params=None):
+        from xgboost import XGBClassifier  # Make sure to install xgboost
+        super().__init__("XGBoost", XGBClassifier(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# ... (include the previous RandomForestRegressorModel, GradientBoostingRegressorModel, etc.)
+
+# Continue with other models like KMeansModel, PCAModel, GaussianMixtureModel, ARIMAModel as before
+
+# ... (other models)
+
+
 class EnsembleStrategy(ABC):
     @abstractmethod
     def combine(self, predictions):
@@ -329,7 +471,182 @@ class XGBoost(BaseModel):
 
     def train(self, X_train, y_train):
         self.algorithm_instance.fit(X_train, y_train)
+# Ridge Regression Model
+class RidgeRegressionModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("RidgeRegression", Ridge(**(params or {})))
 
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Lasso Regression Model
+class LassoRegressionModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("LassoRegression", Lasso(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Elastic Net Regression Model
+class ElasticNetRegressionModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("ElasticNetRegression", ElasticNet(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Bayesian Ridge Regression Model
+class BayesianRidgeRegressionModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("BayesianRidgeRegression", BayesianRidge(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# ARD Regression Model
+class ARDRegressionModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("ARDRegression", ARDRegression(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# ... (implement other regression models in a similar fashion)
+
+# SGD Regressor Model
+class SGDRegressorModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("SGDRegressor", SGDRegressor(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# ... (implement any other specific models you need)
+
+
+# Additional regression models
+class SVRModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("SVR", SVR(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Passive Aggressive Regressor Model
+class PassiveAggressiveRegressorModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("PassiveAggressiveRegressor", PassiveAggressiveRegressor(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Huber Regressor Model
+class HuberRegressorModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("HuberRegressor", HuberRegressor(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Theil-Sen Regressor Model
+class TheilSenRegressorModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("TheilSenRegressor", TheilSenRegressor(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# RANSAC Regressor Model
+class RANSACRegressorModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("RANSACRegressor", RANSACRegressor(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Orthogonal Matching Pursuit Model
+class OrthogonalMatchingPursuitModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("OrthogonalMatchingPursuit", OrthogonalMatchingPursuit(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Lars Model
+class LarsModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("Lars", Lars(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Lasso Lars Model
+class LassoLarsModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("LassoLars", LassoLars(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+from sklearn.linear_model import LinearRegression
+
+# Linear Regression Model
+class LinearRegressionModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("LinearRegression", LinearRegression(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+
+# K-Neighbors Regressor Model
+class KNeighborsRegressorModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("KNeighborsRegressor", KNeighborsRegressor(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Decision Tree Regressor Model
+class DecisionTreeRegressorModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("DecisionTreeRegressor", DecisionTreeRegressor(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# Decision Tree Classifier Model
+class DecisionTreeClassifierModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("DecisionTreeClassifier", DecisionTreeClassifier(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+# ... (add any other specific model classes if needed)
+
+
+# Additional classification models
+class SVCModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("SVC", SVC(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+class LogisticRegressionClassifierModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("LogisticRegressionClassifier", LogisticRegression(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
+
+class GaussianNaiveBayesModel(BaseModel):
+    def __init__(self, params=None):
+        super().__init__("GaussianNaiveBayes", GaussianNB(**(params or {})))
+
+    def train(self, X_train, y_train):
+        self.algorithm_instance.fit(X_train, y_train)
 
 class ThresholdVotingStrategy(EnsembleStrategy):
     def __init__(self, threshold=0.5):
@@ -399,13 +716,40 @@ class AverageStrategy(EnsembleStrategy):
 
 class MappingLayer:
     models_mapping = {
-    "SVM": SVM,
-    "RandomForestRegressor": RandomForest,
-    "LogReg": LogReg,
-    "KNN": KNN,
-    "NeuralNetwork": NeuralNetwork,
-    "XGBoost": XGBoost,
+        "RandomForestRegressor": RandomForestRegressorModel,
+        "GradientBoostingRegressor": GradientBoostingRegressorModel,
+        "AdaBoostRegressor": AdaBoostRegressorModel,
+        "RandomForestClassifier": RandomForestClassifierModel,
+        "AdaBoostClassifier": AdaBoostClassifierModel,
+        "GradientBoostingClassifier": GradientBoostingClassifierModel,
+        "KMeans": KMeansModel,
+        "PCA": PCAModel,
+        "SVR": SVRModel,
+        "SVC": SVCModel,
+        "LinearRegression": LinearRegressionModel,
+        "RidgeRegression": RidgeRegressionModel,
+        "LassoRegression": LassoRegressionModel,
+        "ElasticNetRegression": ElasticNetRegressionModel,
+        "BayesianRidgeRegression": BayesianRidgeRegressionModel,
+        "ARDRegression": ARDRegressionModel,
+        "SGDRegressor": SGDRegressorModel,
+        "PassiveAggressiveRegressor": PassiveAggressiveRegressorModel,
+        "HuberRegressor": HuberRegressorModel,
+        "TheilSenRegressor": TheilSenRegressorModel,
+        "RANSACRegressor": RANSACRegressorModel,
+        "OrthogonalMatchingPursuit": OrthogonalMatchingPursuitModel,
+        "Lars": LarsModel,
+        "LassoLars": LassoLarsModel,
+        "KNeighborsRegressor": KNeighborsRegressorModel,
+        "DecisionTreeRegressor": DecisionTreeRegressorModel,
+        "DecisionTreeClassifier": DecisionTreeClassifierModel,
+        "LogisticRegressionClassifier": LogisticRegressionClassifierModel,
+        "GaussianNaiveBayes": GaussianNaiveBayesModel,
+        "GaussianHMM": GaussianMixtureModel,
+        "ARIMA": ARIMAModel,
+        # Add any additional models here
     }
+
 
     optimizers_mapping = {
     "RandomSearch": RandomSearchOptimizer,
