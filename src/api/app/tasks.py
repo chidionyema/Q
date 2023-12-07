@@ -28,14 +28,15 @@ def send_password_reset_email(email, reset_link):
         msg.body = f'Click the following link to reset your password: {reset_link}'
         mail.send(msg)
 
-
 @celery.task(name='app.train_model_task', bind=True)
 def train_model_task(self, configurations):
     with create_app().app_context():
         try:
             all_results = []  # Storing all metrics
+            print(f"Processing {len(configurations)} configurations...")  # Debugging log
 
             for config in configurations:
+                print(f"Processing configuration for symbol: {config['symbol']}")  # Debugging log
                 # Parsing dates and initializing model and optimizer
                 symbol = config['symbol']
                 start_date = datetime.strptime(config['start_date'], "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -43,13 +44,22 @@ def train_model_task(self, configurations):
                 start_date_str = convert_to_date_only(start_date)
                 end_date_str = convert_to_date_only(end_date)
 
-                model_class = MappingLayer.models_mapping.get(config['model_name'])
                 optimizer = OptimizerFactory.create_optimizer(config['optimizer_name'], param_grid={"n_estimators": [10, 50, 100]})
+                model_builders = []  # Initialize an empty list to store model_builder instances
 
-                model_builder = ModelBuilder(model_class, optimizer=optimizer)
-                stocks_info = [(symbol, start_date_str, end_date_str, 14, 3, model_builder)]
+                for model_name in config['model_name']:
+                    model_class = MappingLayer.models_mapping.get(model_name)
+                    if model_class:  # Check if model_class is not None
+                        model_builder = ModelBuilder(model_class, optimizer=optimizer)
+                        model_builders.append(model_builder)  # Append the model_builder to the list
+
+                # Now model_builders contains all the model_builder instances for the model names in config['model_name']
+                # You can use this list of model_builders as needed in your program
+          
+                stocks_info = [(symbol, start_date_str, end_date_str, 14, 3, model_builders)]
                 pipeline = Pipeline2(stocks_info)
                 predictions = pipeline.process_data_pipeline()
+                print(f"Predictions for {symbol}: {predictions}")  # Debugging log
 
                 # Collecting metrics for each prediction
                 for prediction in predictions:
@@ -76,6 +86,7 @@ def train_model_task(self, configurations):
             return all_results
 
         except Exception as e:
+            print(f"Error occurred: {e}")  # Debugging log
             db.session.rollback()
             raise e
 

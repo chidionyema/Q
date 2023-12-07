@@ -15,7 +15,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_percentage_error
 from xgboost import XGBClassifier
-
+from sklearn.metrics import mean_absolute_error
 
 # Define classes and functions you want to expose
 __all__ = [
@@ -988,8 +988,8 @@ class DataPreparation:
 
 class Pipeline2:
     def __init__(self, stocks_info):
-        self.stocks_info = [(symbol, self.adjust_start_date(user_start_date, lookback_period), end_date, lookback_period, prediction_period, model_builder)
-                            for symbol, user_start_date, end_date, lookback_period, prediction_period, model_builder in stocks_info]
+        self.stocks_info = [(symbol, self.adjust_start_date(user_start_date, lookback_period), end_date, lookback_period, prediction_period, model_builders)
+                            for symbol, user_start_date, end_date, lookback_period, prediction_period, model_builders in stocks_info]
         self.models = {}
         self.ensemble = None
 
@@ -1049,16 +1049,27 @@ class Pipeline2:
         prepped_data = [(stock_info, future.result()) for stock_info, future in prepped_data]
         return prepped_data
     
-
     def train_and_evaluate(self, stock_info, X_train, y_train, X_val, y_val, X_test, y_test):
         """Trains models and evaluates their performance on validation and test data."""
-        symbol, _, _, _, _, model_builder = stock_info
-        try:
-            self.models[symbol] = model_builder.build(X_train, y_train)
-            self.ensemble = Ensemble(list(self.models.values()))
+        symbol, _, _, _, _, model_builders = stock_info
 
+        try:
+            # Initialize an empty list for storing models for the current symbol
+            self.models[symbol] = []
+
+            # Iterate over each model_builder and build the models
+            for model_builder in model_builders:
+                model = model_builder.build(X_train, y_train)
+                self.models[symbol].append(model)
+
+            # Create an ensemble with all the built models
+            all_models = [model for models in self.models.values() for model in models]
+            self.ensemble = Ensemble(all_models)
+
+            # Train the ensemble model
             self.ensemble.train(X_train, y_train)
 
+            # Evaluate on validation and test data
             val_predictions = self.ensemble.predict(X_val)
             mae_val = mean_absolute_error(y_val, val_predictions)
             mse_val = mean_squared_error(y_val, val_predictions)
@@ -1080,7 +1091,9 @@ class Pipeline2:
         except Exception as e:
             logging.error(f"Error in Pipeline run for {symbol}: {e}")
             logging.error(traceback.format_exc())
-        return None, None, None  # Return None values if there is an error
+
+        return None, None, None, None, None, None, None, None, None  # Return None values if there is an error
+
 
 
 
@@ -1169,7 +1182,7 @@ class Pipeline2:
 
     def begin_predict(self, new_data):             
         return self.ensemble.predict(new_data)
-        from sklearn.metrics import mean_absolute_error
+
 
 class WalkForwardValidation:
     def __init__(self, initial_train_size, validation_size, pipeline):

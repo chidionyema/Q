@@ -18,6 +18,7 @@ from auth import auth_blueprint
 from flask_socketio import  emit 
 from dotenv import load_dotenv
 from app import socketio, db
+from app.tasks import train_model_task;
 from app.dbdata import  ModelCategory, MLModel, EnsembleStrategy, ModelOptimizer
 
 load_dotenv()

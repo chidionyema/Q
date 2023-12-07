@@ -81,24 +81,48 @@ const App = () => {
   const [models, setModels] = useState<SelectOption[]>([]);
   const [optimizers, setOptimizers] = useState<SelectOption[]>([]);
   const [votingStrategies, setVotingStrategies] = useState<SelectOption[]>([]);
-  
   const [advancedMode, setAdvancedMode] = useState<boolean>(false);
-
   const [selectedStocks, setSelectedStocks] = useState<string[]>([]);
   const [currentStockTab, setCurrentStockTab] = useState<number>(0);
   const [stockConfig, setStockConfig] = useState<{[key: string]: any}>({});
   const [serverFeedback, setServerFeedback] = useState('');
-  const [maeVal, setMaeVal] = useState(null);
-  const [maeTest, setMaeTest] = useState(null);
+  const [configErrors, setConfigErrors] = useState({});
   const [predictionResults, setPredictionResults] = useState<StockPredictionResults>({});
-
-
   const today = new Date();
+  // Create a single instance of APIProxy
+  const apiProxyInstance = new APIProxy();
+  const apiCall = useApiCall(apiProxyInstance.fetchEndpoint);
+
+  interface ConfigErrors {
+    [key: string]: string;
+  }
+  
+// Validation function
+const validateConfig = () => {
+  let errors: ConfigErrors = {};
+  selectedStocks.forEach(stock => {
+    const config = stockConfig[stock];
+    if (!config.startDate) {
+      errors[`${stock}-startDate`] = 'Start date is required';
+    }
+    if (!config.endDate) {
+      errors[`${stock}-endDate`] = 'End date is required';
+    }
+    if (!config.Model) {
+      errors[`${stock}-Model`] = 'Model selection is required';
+    }
+    if (!config.Optimizer) {
+      errors[`${stock}-Optimizer`] = 'Optimizer selection is required';
+    }
+    if (!config['Voting Strategy']) {
+      errors[`${stock}-VotingStrategy`] = 'Voting strategy selection is required';
+    }
+  });
+  setConfigErrors(errors);
+  return Object.keys(errors).length === 0;
+};
 
   
-  // Create a single instance of APIProxy
-const apiProxyInstance = new APIProxy();
-const apiCall = useApiCall(apiProxyInstance.fetchEndpoint);
 
 const fetchModels = async () => {
   try {
@@ -158,15 +182,16 @@ const fetchModels = async () => {
       ...prev,
       [selectedStocks[currentStockTab]]: {
         ...prev[selectedStocks[currentStockTab]],
-        [key]: value
+        [key]: key === 'Model' ? [...value] : value  // Handle multiple models
       }
     }));
   };
 
   const isStockConfigComplete = (stock: string) => {
     const config = stockConfig[stock];
-    return config && config.Model && config.Optimizer && config['Voting Strategy'];
+    return config && Array.isArray(config.Model) && config.Model.length > 0 && config.Optimizer && config['Voting Strategy'];
   };
+  
 
   const handleStartDateChange = (date: Date | null) => {
     if (date) {
@@ -195,11 +220,19 @@ const fetchModels = async () => {
     symbol: string;
     mae_val: number;
     mae_test: number;
+    // Add new metrics here
+    mse_val?: number; // Mean Squared Error for Validation
+    mse_test?: number; // Mean Squared Error for Test
+    r2_val?: number;   // R-squared for Validation
+    r2_test?: number;  // R-squared for Test
+    mape_val?: number; // Mean Absolute Percentage Error for Validation
+    mape_test?: number; // Mean Absolute Percentage Error for Test
 }
 
 type StockPredictionResults = {
     [key: string]: StockPredictionResult;
 };
+
 
   useEffect(() => {  
       socketManager.connect();
@@ -207,7 +240,7 @@ type StockPredictionResults = {
       
       socketManager.on('training_complete', (data) => {
         const updatedResults: { [key: string]: StockPredictionResult } = { ...predictionResults };
-        
+        console.log(data);
         if (data.predictions && Array.isArray(data.predictions)) {
             data.predictions.forEach((result: StockPredictionResult) => {
                 updatedResults[result.symbol] = result;
@@ -237,13 +270,14 @@ type StockPredictionResults = {
   }, []);
 
   const startTraining = () => {
-      //if (!validateInputs()) return;
+    if (!validateConfig()) return;
     //  setIsTraining(true);
      // setIsLoading(true);
      console.log("in");
      const trainingData = selectedStocks.map(stock => ({
       symbol: stock,
-      config: stockConfig[stock]
+      config: stockConfig[stock],
+      models: stockConfig[stock].Model 
     }));
     socketManager.emit('submit_configurations', trainingData);
   };
@@ -312,18 +346,39 @@ type StockPredictionResults = {
               />
             </FormControl>
             </Box>
-            <FormControl fullWidth variant="outlined">
-            <InputLabel htmlFor="model-select">Model</InputLabel>
-            <Select
-              id="model-select"
-              value={stockConfig[selectedStocks[currentStockTab]]?.Model || ''}
-              onChange={(e) => updateConfig('Model', e.target.value)}
-            >
-              {models.map(model => (
-                <MenuItem key={model.id} value={model.name}>{model.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          
+
+          {!advancedMode && (
+          <FormControl fullWidth variant="outlined">
+          <InputLabel htmlFor="model-select">Model</InputLabel>
+          <Select
+            id="model-select"
+            value={stockConfig[selectedStocks[currentStockTab]]?.Model || ''}
+            onChange={(e) => updateConfig('Model', e.target.value)}
+          >
+            {models.map(model => (
+              <MenuItem key={model.id} value={model.name}>{model.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
+
+          {advancedMode && (
+        <FormControl fullWidth variant="outlined">
+          <InputLabel htmlFor="model-select">Model</InputLabel>
+          <Select
+            id="model-select"
+            multiple
+            value={stockConfig[selectedStocks[currentStockTab]]?.Model || []}
+            onChange={(e) => updateConfig('Model', e.target.value)}
+            renderValue={(selected) => selected.join(', ')}
+          >
+            {models.map(model => (
+              <MenuItem key={model.id} value={model.name}>{model.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
 
           <FormControl fullWidth variant="outlined">
             <InputLabel htmlFor="optimizer-select">Optimizer</InputLabel>
@@ -352,41 +407,67 @@ type StockPredictionResults = {
           </FormControl>
             {/* Advanced Mode Configuration Here */}
             <Box mt={3}>
-              <Button variant="contained" color="primary" onClick={startTraining}>Submit Configurations</Button>
+              <Button variant="contained" color="primary" disabled={Object.keys(configErrors).length > 0} onClick={startTraining}>Submit Configurations</Button>
             </Box>
           </Paper>
-
-          {selectedStocks.length > 0 && (
-    <Grid item xs={12}>
-        {selectedStocks.map(stock => (
-            <Paper key={stock} elevation={3} style={{ marginTop: '1rem', padding: '1rem' }}>
-                <Typography variant="h5" gutterBottom align="center">Prediction Results for {stock}</Typography>
-                <Box mt={2}>
+          {
+   
+    selectedStocks.length > 0 && (
+        <Grid item xs={12}>
+            {selectedStocks.map(stock => (
+                <Paper key={stock} elevation={3} style={{ marginTop: '1rem', padding: '1rem' }}>
+                    <Typography variant="h5" gutterBottom align="center">Prediction Results for {stock}</Typography>
+                    <Box mt={2}>
                     {predictionResults[stock] ? (
-                        <TableContainer component={Paper}>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>MAE Val</TableCell>
-                                        <TableCell>MAE Test</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    <TableRow>
-                                        <TableCell>{predictionResults[stock].mae_val}</TableCell>
-                                        <TableCell>{predictionResults[stock].mae_test}</TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    ) : (
-                        <Typography variant="body1">No results available yet for {stock}</Typography>
-                    )}
-                </Box>
-            </Paper>
-        ))}
-    </Grid>
+    <>
+        <TableContainer component={Paper}>
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>MAE Val</TableCell>
+                        <TableCell>MAE Test</TableCell>
+                        <TableCell>MSE Val</TableCell>
+                        <TableCell>MSE Test</TableCell>
+                        <TableCell>R2 Val</TableCell>
+                        <TableCell>R2 Test</TableCell>
+                        <TableCell>MAPE Val</TableCell>
+                        <TableCell>MAPE Test</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    <TableRow>
+                        <TableCell>{predictionResults[stock].mae_val}</TableCell>
+                        <TableCell>{predictionResults[stock].mae_test}</TableCell>
+                        <TableCell>{predictionResults[stock].mse_val}</TableCell>
+                        <TableCell>{predictionResults[stock].mse_test}</TableCell>
+                        <TableCell>{predictionResults[stock].r2_val}</TableCell>
+                        <TableCell>{predictionResults[stock].r2_test}</TableCell>
+                        <TableCell>{predictionResults[stock].mape_val}</TableCell>
+                        <TableCell>{predictionResults[stock].mape_test}</TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        </TableContainer>
+        <Typography variant="caption" display="block" gutterBottom style={{ marginTop: '10px' }}>
+            <strong>Explanation of Metrics:</strong>
+            <br /><strong>MAE (Mean Absolute Error):</strong> Average of absolute differences between predicted and actual values.
+            <br /><strong>MSE (Mean Squared Error):</strong> Average of squared differences between predicted and actual values.
+            <br /><strong>R2 (R-squared):</strong> Proportion of variance in the dependent variable predictable from the independent variables.
+            <br /><strong>MAPE (Mean Absolute Percentage Error):</strong> Average of absolute percentage differences between predicted and actual values.
+        </Typography>
+    </>
+) : (
+    <Typography variant="body1">No results available yet for {stock}</Typography>
 )}
+
+        </Box>
+                </Paper>
+            ))}
+        </Grid>
+    )
+  }
+
+
 
         </Grid>
         
