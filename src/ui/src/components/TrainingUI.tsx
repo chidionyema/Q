@@ -33,7 +33,7 @@ const TrainingDemo = () => {
     };
 
     return (
-        <div> <h2>Start Training Now</h2>
+        <div> <h3>Start Training Now</h3>
         
         {maeVal && <p><strong>MAE Val:</strong> {maeVal}</p>}
         {maeTest && <p><strong>MAE Test:</strong> {maeTest}</p>}

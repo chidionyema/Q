@@ -11,7 +11,7 @@ const ResetPassword: React.FC = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            await apiProxy('/request-password-reset', 'POST', { email });
+            await apiProxy('/auth/request-password-reset', 'POST', { email });
             setMessage('Password reset link sent. Check your email.');
             setLoading(false);
         } catch (error) {

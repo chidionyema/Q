@@ -35,7 +35,7 @@ const Register: React.FC = () => {
 
     try {
         console.log('[register] Making API call to /register with credentials:', credentials);
-        const response = await registerApi.call('/register', {
+        const response = await registerApi.call('/auth/register', {
             method: 'POST',
             body: JSON.stringify(credentials),
             credentials: 'include',

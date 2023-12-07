@@ -11,7 +11,6 @@ import { APIProxy } from '../utility/apiProxy';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useMediaQuery, Theme } from '@mui/material';
 import { Divider } from '@mui/material';
-import customTheme from '../../customTheme'; // Adjust the path as needed
 
 import {
   AppBar,
@@ -41,10 +40,10 @@ const NavBar: React.FC = () => {
   const navItems = [
     { path: '/', label: 'Home' },
     { path: '/train', label: 'Explore Models' },
+    { path: '/simulations', label: 'Run Simulations' },
+    { path: '/services', label: 'Leaderboard' },
     { path: '/about', label: 'About Us' },
-    { path: '/services', label: 'Services' },
     { path: '/contact', label: 'Contact' },
-    { path: '/blog', label: 'Blog' },
     // ... [You can add even more items as needed]
   ];
 
@@ -152,8 +151,8 @@ const NavBar: React.FC = () => {
       
       alignItems: 'center',
       gap: 1,
-      left: '2rem',
-      marginLeft: '2rem',
+      left: '0.2rem',  // Reduced from '2rem' to '1rem'
+      marginLeft: '0.2rem',  // Reduced from '2rem' to '1rem'
       justifyContent: 'center',
       textAlign: 'center'
     }}

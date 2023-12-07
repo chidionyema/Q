@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import { getCookie, setUsername } from '../utility/sessionManager';
 import { parse } from 'cookie';
 
 const AuthVerification = ({ isAuthenticated, username }: { isAuthenticated: boolean; username: string }) => {

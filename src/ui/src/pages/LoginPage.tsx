@@ -10,7 +10,7 @@ const apiProxyInstance = new APIProxy();
 
 const LoginPage: NextPage = () => {
     const handleGoogleLogin = () => {
-        window.location.href = 'https://api.dev.io:5000/login/google';
+        window.location.href = 'https://api.dev.io:5000/auth/login/google';
     };
     const [message, setMessage] = useState('');
     const [credentials, setCredentials] = useState({ email: '', password: '' });
@@ -26,7 +26,7 @@ const LoginPage: NextPage = () => {
     
         try {
           // Make the API call
-          const response = await loginApi.call('/login', {
+          const response = await loginApi.call('/auth/login', {
             method: 'POST',
             body: JSON.stringify(credentials),
             credentials: 'include',
