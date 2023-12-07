@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, make_response, session, url_for, 
 import jwt
 from functools import wraps
 
-from dbdata import User, PasswordResetToken
+from app.dbdata import User, PasswordResetToken
 import os
 import random
 import string

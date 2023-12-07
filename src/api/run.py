@@ -1,42 +1,24 @@
 # from gevent import monkey
 # monkey.patch_all()
-import string
+
+import json
 import eventlet
 eventlet.monkey_patch(socket=True, select=True)
 
-# Python built-ins
-from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
-from collections import Counter
-import concurrent.futures
 import logging
 import os
-import time
-import requests
-
-import traceback
 
 # Third-party libraries
-from flask import Flask, flash, session, request, make_response, jsonify, redirect, abort, url_for
+from flask import  jsonify
 from flask_bcrypt import Bcrypt
-from functools import wraps
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_migrate import Migrate
-from flask_mail import Mail, Message
-from flask_oauthlib.client import OAuth
 from auth import auth_blueprint
-from flask_socketio import SocketIO, emit 
-from flask_sqlalchemy import SQLAlchemy
+from flask_socketio import  emit 
 from dotenv import load_dotenv
-import jwt
-import secrets
-from app.tasks import train_model_task
-from validate_email import validate_email
-from functools import wraps
-from app.engine import Pipeline2, RandomForest, DataLoader
 from app import socketio, db
-from dbdata import User, PasswordResetToken, TaskResult, ModelCategory, MLModel, EnsembleStrategy, ModelOptimizer
+from app.dbdata import  ModelCategory, MLModel, EnsembleStrategy, ModelOptimizer
 
 load_dotenv()
 
@@ -193,9 +175,6 @@ def fetch_optimizers():
         return jsonify({'error': 'No optimizers found in the database'}), 404
 
 
-VALID_MODEL_TYPES = ["random_forest", "linear_regression"]  # Add all valid model types here
-import logging
-
 @socketio.on('train_model')
 def handle_train_model_event(data):
     symbol = data.get('symbol')
@@ -221,6 +200,10 @@ def handle_train_model_event(data):
         logging.error(f'Error starting training task: {str(e)}')
         emit('training_error', {'error_message': str(e)})
 
+from app.tasks import train_model_task  # Import your task
+
+# Rest of your Celery configuration
+
 @socketio.on('submit_configurations')
 def handle_train_model_event(data):
     try:
@@ -235,6 +218,7 @@ def handle_train_model_event(data):
             config = item['config']
 
             start_date = config.get('startDate')
+            end_date = config.get('endDate')
             model_name = config.get('Model')
             optimizer_name = config.get('Optimizer')
             voting_strategy_name = config.get('Voting Strategy')
@@ -243,6 +227,7 @@ def handle_train_model_event(data):
             stock_config = {
                 'symbol': symbol,
                 'start_date': start_date,
+                'end_date': end_date,
                 'model_name': model_name,
                 'optimizer_name': optimizer_name,
                 'voting_strategy_name': voting_strategy_name

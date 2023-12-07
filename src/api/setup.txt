@@ -22,7 +22,8 @@ if __name__ == "__main__":
 # --------------------------------
 # 2. Starting Celery from Terminal:
 # --------------------------------
-# Command: celery -A <filename_without_extension> worker --loglevel=info
+# Command:  celery -A app.celery worker --loglevel=info
+
 
 # --------------------------------------------------------
 # 3. Setting Up Redis:

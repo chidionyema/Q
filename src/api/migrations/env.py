@@ -3,7 +3,7 @@ from logging.config import fileConfig
 
 from flask import current_app
 from alembic import context
-from dbdata import User, PasswordResetToken, TaskResult, ModelCategory, MLModel, EnsembleStrategy, ModelOptimizer
+from api.app.dbdata import User, PasswordResetToken, TaskResult, ModelCategory, MLModel, EnsembleStrategy, ModelOptimizer
 
 config = context.config
 

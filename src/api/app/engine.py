@@ -19,6 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 __all__ = [
    
     'DataLoader',
+    'OptimizerFactory',
     'GridSearchOptimizer',
     'ModelBuilder',
     'BaseModel',
@@ -79,6 +80,10 @@ class BaseModel(ABC):
     def predict(self, X):
         return self.algorithm_instance.predict(X)
     
+class EnsembleStrategy(ABC):
+    @abstractmethod
+    def combine(self, predictions):
+        pass
 
 # --- Optimizers ---
 class Optimizer(ABC):
@@ -86,10 +91,39 @@ class Optimizer(ABC):
     def optimize(self, model, X_train, y_train):
         pass
 
-class EnsembleStrategy(ABC):
-    @abstractmethod
-    def combine(self, predictions):
-        pass
+class OptimizerFactory:
+    @staticmethod
+    def create_optimizer(optimizer_name, **kwargs):
+        """
+        Factory method to create optimizer instances.
+
+        :param optimizer_name: Name of the optimizer.
+        :param kwargs: Additional keyword arguments specific to each optimizer.
+        :return: An instance of the requested optimizer.
+        """
+        if optimizer_name == "GridSearch":
+            return GridSearchOptimizer(**kwargs)
+        elif optimizer_name == "RandomSearchOptimizer":
+            return RandomSearchOptimizer(**kwargs)
+        elif optimizer_name == "BayesianOptimizer":
+            return BayesianOptimizer(**kwargs)
+        elif optimizer_name == "PSOOptimizer":
+            return PSOOptimizer(**kwargs)
+        elif optimizer_name == "SimulatedAnnealingOptimizer":
+            return SimulatedAnnealingOptimizer(**kwargs)
+        elif optimizer_name == "TPEOptimizer":
+            return TPEOptimizer(**kwargs)
+        elif optimizer_name == "OptunaCMAESOptimizer":
+            return OptunaCMAESOptimizer(**kwargs)
+        elif optimizer_name == "DEAPGAOptimizer":
+            return DEAPGAOptimizer(**kwargs)
+        elif optimizer_name == "OptunaTPEOptimizer":
+            return OptunaTPEOptimizer(**kwargs)
+        else:
+            raise ValueError(f"Optimizer '{optimizer_name}' not recognized.")
+
+# Example usage
+
 
 
 
@@ -105,6 +139,9 @@ class RandomForest(BaseModel):
 
     def train(self, X_train, y_train):
         self.algorithm_instance.fit(X_train, y_train)
+
+
+
 
 
 class GridSearchOptimizer(Optimizer):
@@ -361,7 +398,7 @@ class AverageStrategy(EnsembleStrategy):
 class MappingLayer:
     models_mapping = {
     "SVM": SVM,
-    "GBM": GBM,
+    "RandomForestRegressor": RandomForest,
     "LogReg": LogReg,
     "KNN": KNN,
     "NeuralNetwork": NeuralNetwork,
@@ -370,7 +407,7 @@ class MappingLayer:
 
     optimizers_mapping = {
     "RandomSearch": RandomSearchOptimizer,
-    "Bayesian": BayesianOptimizer,
+    "BayesianOptimizer": BayesianOptimizer,
     "PSO": PSOOptimizer,
     "SimulatedAnnealing": SimulatedAnnealingOptimizer,
     "TPE": TPEOptimizer,
@@ -392,11 +429,6 @@ class MappingLayer:
 # "Average": AverageStrategy,
     # Add other strategies here
 }
-
-
-
-
-
 
 class DataLoader:
     @staticmethod
@@ -423,6 +455,7 @@ class ModelBuilder:
     def __init__(self, model_class, optimizer=None):
         self.model_class = model_class
         self.optimizer = optimizer
+        logging.info(f"model class: { self.model_class}. optiizer class: { self.optimizer}")
 
     def build(self, X_train, y_train):
         if isinstance(X_train, (list, tuple)):
@@ -430,6 +463,7 @@ class ModelBuilder:
         else:
             # Assuming they are numpy arrays or pandas data structures
             print(f"[ModelBuilder.build] Before any operations - X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
+        logging.info(f"model class: { self.model_class}. optiizer class: { self.optimizer}")
 
         model = self.model_class()
         
@@ -673,7 +707,9 @@ class Pipeline2:
         """Trains models and evaluates their performance on validation and test data."""
         symbol, _, _, _, _, model_builder = stock_info
         try:
+            
             self.models[symbol] = model_builder.build(X_train, y_train)
+            
             self.ensemble = Ensemble(list(self.models.values()))
 
             self.ensemble.train(X_train, y_train)
@@ -828,108 +864,6 @@ class WalkForwardValidation:
         return X, y
 
 
-class TrainingCoordinator:
-    def __init__(self, models, processed_data, ensemble_class):
-        self.models = models
-        self.processed_data = processed_data
-        self.ensemble_class = ensemble_class
-
-    def suggest_strategy(self, selected_stocks):
-        """
-        Suggest an appropriate training strategy based on the number of selected stocks and models.
-
-        Args:
-            selected_stocks (list): List of selected stocks.
-
-        Returns:
-            str: Suggested strategy.
-        """
-        num_stocks = len(selected_stocks)
-        num_models = len(self.models)
-
-        # Suggest a strategy based on the number of stocks and models
-        if num_stocks == 1 and num_models == 1:
-            return "Single Model - Single Stock"
-        elif num_stocks == 1 and num_models > 1:
-            return "Multiple Models - Single Stock"
-        elif num_stocks > 1 and num_models == 1:
-            return "Single Model - Multiple Stocks"
-        elif num_stocks > 1 and num_models > 1:
-            return "Multiple Models - Multiple Stocks"
-
-    def train_models(self, selected_stocks, selected_strategy):
-        """
-        Train models based on the selected strategy.
-
-        Args:
-            selected_stocks (list): List of selected stocks.
-            selected_strategy (str): Selected training strategy.
-        """
-        if selected_strategy not in ["Single Model - Single Stock", "Multiple Models - Single Stock",
-                                     "Single Model - Multiple Stocks", "Multiple Models - Multiple Stocks"]:
-            raise ValueError("Invalid strategy selected.")
-
-        # Use the selected strategy to train models
-        if selected_strategy == "Single Model - Single Stock":
-            model = self.models[0]
-            ensemble = self.ensemble_class([model])
-            data_splits = self.get_data_for_stock(selected_stocks[0])
-            train_data, _, _ = data_splits
-            X_train, y_train = train_data
-            ensemble.train(X_train, y_train)
-        elif selected_strategy == "Multiple Models - Single Stock":
-            ensemble = self.ensemble_class(self.models)
-            data_splits = self.get_data_for_stock(selected_stocks[0])
-            train_data, _, _ = data_splits
-            X_train, y_train = train_data
-            ensemble.train(X_train, y_train)
-        elif selected_strategy == "Single Model - Multiple Stocks":
-            model = self.models[0]
-            ensemble = self.ensemble_class([model])
-            combined_data = self.combine_data_for_stocks(selected_stocks)
-            train_data, _, _ = combined_data
-            X_train, y_train = train_data
-            ensemble.train(X_train, y_train)
-        elif selected_strategy == "Multiple Models - Multiple Stocks":
-            ensemble = self.ensemble_class(self.models)
-            combined_data = self.combine_data_for_stocks(selected_stocks)
-            train_data, _, _ = combined_data
-            X_train, y_train = train_data
-            ensemble.train(X_train, y_train)
-
-    def get_data_for_stock(self, stock):
-        """
-        Get processed data splits for a specific stock.
-
-        Args:
-            stock (str): The stock symbol.
-
-        Returns:
-            tuple: Data splits (X_train, y_train, X_val, y_val, X_test, y_test) for the stock.
-        """
-        if stock in self.processed_data:
-            return self.processed_data[stock]
-        else:
-            raise ValueError(f"Stock '{stock}' not found in processed data.")
-
-    def combine_data_for_stocks(self, selected_stocks):
-        """
-        Combine data for selected stocks.
-
-        Args:
-            selected_stocks (list): List of selected stocks.
-
-        Returns:
-            tuple: Combined data (X_train, y_train, X_val, y_val, X_test, y_test).
-        """
-        combined_train, combined_val, combined_test = [], [], []
-        for stock in selected_stocks:
-            data_splits = self.get_data_for_stock(stock)
-            train, val, test = data_splits
-            combined_train.extend(train[0])
-            combined_val.extend(val[0])
-            combined_test.extend(test[0])
-        return combined_train, combined_val, combined_test
 
 
 

@@ -2,7 +2,7 @@
 from app import db, app
 from datetime import datetime
 from sqlalchemy import Column
-from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy import  MetaData, Table
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)

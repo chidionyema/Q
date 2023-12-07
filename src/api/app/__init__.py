@@ -44,5 +44,8 @@ class ContextTask(Task):
             return super(ContextTask, self).__call__(*args, **kwargs)
 
 celery = Celery(app.name, broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
+# In your Celery configuration
+celery.autodiscover_tasks(['app'])
+
 celery.conf.update(app.config)
 celery.Task = ContextTask  # Setting the default Task class to ContextTask
